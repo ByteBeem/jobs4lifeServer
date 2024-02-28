@@ -1,8 +1,8 @@
 const cluster = require("cluster");
 const http = require("http");
 const express = require("express");
-const { initializeApp, credential, auth } = require("firebase-admin");
 const firebase = require("firebase-admin");
+import { getAppCheck } from "firebase-admin/app-check";
 const hpp = require('hpp');
 const saltRounds = 12;
 const bcrypt = require("bcrypt");
@@ -17,13 +17,13 @@ const port = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 
-
-
 const firebaseServiceAccount = require("./key.json");
+
 firebase.initializeApp({
   credential: firebase.credential.cert(firebaseServiceAccount),
   databaseURL: "https://jobs4life-d6926-default-rtdb.asia-southeast1.firebasedatabase.app",
 });
+
 const db = firebase.database();
 
 app.use(express.json({ limit: '1mb' }));
@@ -70,36 +70,44 @@ app.use((req, res, next) => {
   next();
 });
 
-// Signup endpoint
-app.post("/signup", async (req, res) => {
-  const { username, phoneNumber, password } = req.body;
+
+const appCheckVerification = async (req, res, next) => {
+    const appCheckToken = req.header("X-Firebase-AppCheck");
+
+    if (!appCheckToken) {
+        res.status(401);
+        return next("Unauthorized");
+    }
+
+    try {
+        const appCheckClaims = await getAppCheck().verifyToken(appCheckToken);
+
+        
+    } catch (err) {
+        res.status(401);
+        return next("Unauthorized");
+    }
+}
+
+app.post("/signup",  [appCheckVerification], async (req, res) => {
+  const { username, phoneNumber, password  } = req.body;
 
   try {
-    // Verify Firebase App Check token
-    const firebaseToken = req.headers['x-firebase-appcheck'];
-    if (!firebaseToken) {
-      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-    }
-    const checkTokenResponse = await auth().appCheck().verifyToken(firebaseToken);
-    if (!checkTokenResponse) {
-      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-    }
+    
 
-    // Check if phone number already exists
     const cellSnapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     if (cellSnapshot.exists()) {
       return res.status(409).json({ error: "Cell number already registered." });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
     const userRef = db.ref('users').push();
     await userRef.set({
       username: username,
       cell: phoneNumber,
       password: hashedPassword,
+     
     });
 
     res.status(201).json({ message: "User created successfully." });
@@ -108,6 +116,7 @@ app.post("/signup", async (req, res) => {
     return res.status(500).json({ error: "Internal server error. Please try again later." });
   }
 });
+
 
 
 
