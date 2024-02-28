@@ -1,7 +1,7 @@
 const cluster = require("cluster");
 const http = require("http");
 const express = require("express");
-const firebase = require("firebase-admin");
+const {auth, firebase} = require("firebase-admin");
 const hpp = require('hpp');
 const saltRounds = 12;
 const bcrypt = require("bcrypt");
