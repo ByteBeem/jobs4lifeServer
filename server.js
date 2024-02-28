@@ -20,7 +20,7 @@ const firebaseServiceAccount = require("./key.json");
 
 firebase.initializeApp({
   credential: firebase.credential.cert(firebaseServiceAccount),
-  databaseURL: "https://wesmart-a981c-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: "https://jobs4life-d6926-default-rtdb.asia-southeast1.firebasedatabase.app",
 });
 
 const db = firebase.database();
@@ -32,6 +32,13 @@ app.use(hpp());
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }));
 
 app.set('trust proxy', 'loopback');
+
+
+const loginLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 5,
+    message: "Too many login attempts from this IP, please try again later",
+  });
 
 const corsOptions = {
   origin: ['https://www.shopient.co.za', 'https://www.shopient.co.za', 'https://www.shopient.co.za'],
@@ -64,9 +71,18 @@ app.use((req, res, next) => {
 
 
 app.post("/signup", async (req, res) => {
-  const { name, phoneNumber, password , stream } = req.body;
+  const { username, phoneNumber, password  } = req.body;
 
   try {
+    const firebaseToken = req.headers['x-firebase-appcheck'];
+    if (!firebaseToken) {
+      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+    }
+    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    if (!checkTokenResponse) {
+      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+    }
+
     const cellSnapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     if (cellSnapshot.exists()) {
       return res.status(409).json({ error: "Cell number already registered." });
@@ -76,10 +92,10 @@ app.post("/signup", async (req, res) => {
 
     const userRef = db.ref('users').push();
     await userRef.set({
-      name: name,
+      username: username,
       cell: phoneNumber,
       password: hashedPassword,
-      stream:stream
+     
     });
 
     res.status(201).json({ message: "User created successfully." });
@@ -90,42 +106,48 @@ app.post("/signup", async (req, res) => {
 });
 
 
-const generateRandomNumber = () => {
-  const randomNumber = Math.floor(Math.random() * 10000000000000).toString();
-  return randomNumber.padStart(13, '0'); 
-};
 
 
-const loginLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 5,
-  message: "Too many login attempts from this IP, please try again later",
-});
 
-app.post('/upload', (req, res) => {
+
+app.post('/upload',async (req, res) => {
   const postData = req.body;
-
+  const firebaseToken = req.headers['x-firebase-appcheck'];
+  if (!firebaseToken) {
+    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+  }
+  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+  if (!checkTokenResponse) {
+    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+  }
   
   if (!postData.caption) {
     postData.caption = "";
   }
   
-  const userRef = db.ref('posts').push();
+  const userRef = db.ref('userposts').push();
   userRef.set({
     imageUrl: postData.imageUrl,
     caption: postData.caption,
     time: postData.timestamp,
     user : postData.token,
     content_type: postData.content_type,
-    stream:postData.stream
+    
   });
 
   res.status(200).json({ message: "Post created successfully." });
 });
 
-app.post('/PostComments', (req, res) => {
+app.post('/PostComments', async(req, res) => {
   const postData = req.body;
-
+  const firebaseToken = req.headers['x-firebase-appcheck'];
+  if (!firebaseToken) {
+    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+  }
+  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+  if (!checkTokenResponse) {
+    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+  }
   
   if (!postData.caption) {
     postData.caption = "";
@@ -146,6 +168,14 @@ app.post('/PostComments', (req, res) => {
 
 app.get("/getUserData", async (req, res) => {
   const token = req.header("Authorization");
+  const firebaseToken = req.headers['x-firebase-appcheck'];
+    if (!firebaseToken) {
+      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+    }
+    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    if (!checkTokenResponse) {
+      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+    }
 
   if (!token || !token.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -174,9 +204,16 @@ app.get("/getUserData", async (req, res) => {
   }
 });
 
-app.post('/TextComment', (req, res) => {
+app.post('/TextComment',async (req, res) => {
   const postData = req.body;
-
+  const firebaseToken = req.headers['x-firebase-appcheck'];
+  if (!firebaseToken) {
+    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+  }
+  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+  if (!checkTokenResponse) {
+    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+  }
   
   if (!postData.caption) {
     postData.caption = "";
@@ -194,22 +231,29 @@ app.post('/TextComment', (req, res) => {
   res.status(200).json({ message: "Post created successfully.", data: postData });
 });
 
-app.post('/uploadText', (req, res) => {
+app.post('/uploadText', async(req, res) => {
   const postData = req.body;
-
+  const firebaseToken = req.headers['x-firebase-appcheck'];
+  if (!firebaseToken) {
+    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+  }
+  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+  if (!checkTokenResponse) {
+    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+  }
   
   if (!postData.caption) {
     postData.caption = "";
   }
   
-  const userRef = db.ref('posts').push();
+  const userRef = db.ref('userposts').push();
   userRef.set({
     
     caption: postData.caption,
     time: postData.timestamp,
     user : postData.token,
     content_type: postData.content_type,
-    stream:postData.stream
+    
   });
 
   res.status(200).json({ message: "Post created successfully." });
@@ -220,6 +264,14 @@ app.post('/uploadText', (req, res) => {
 
 app.get('/posts', async (req, res) => {
   try {
+    const firebaseToken = req.headers['x-firebase-appcheck'];
+    if (!firebaseToken) {
+      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+    }
+    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    if (!checkTokenResponse) {
+      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+    }
     const authHeader = req.headers['authorization'];
     let postsArray;
 
@@ -254,6 +306,14 @@ app.get('/posts', async (req, res) => {
 
 app.get('/comments', async (req, res) => {
   try {
+    const firebaseToken = req.headers['x-firebase-appcheck'];
+    if (!firebaseToken) {
+      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+    }
+    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    if (!checkTokenResponse) {
+      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+    }
     const authHeader = req.headers['authorization'];
     let commentsArray = [];
 
@@ -279,38 +339,19 @@ app.get('/comments', async (req, res) => {
 
 
 
-
-app.get('/Userposts', async (req, res) => {
-  try {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const token = authHeader.substring(7); 
-    const postsSnapshot = await db.ref('posts').once('value');
-    const postsData = postsSnapshot.val();
-
-    
-    const filteredPosts = Object.keys(postsData)
-      .filter(key => postsData[key].user === token)
-      .map(key => ({ id: key, ...postsData[key] }));
-
-    filteredPosts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    res.json(filteredPosts);
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
 app.post("/login", loginLimiter, async (req, res) => {
   const { phoneNumber, password } = req.body;
 
   try {
+    const firebaseToken = req.headers['x-firebase-appcheck'];
+    if (!firebaseToken) {
+      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
+    }
+    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    if (!checkTokenResponse) {
+      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
+    }
+
     const snapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     const userData = snapshot.val();
 
@@ -346,8 +387,8 @@ app.post("/login", loginLimiter, async (req, res) => {
       const newToken = jwt.sign(
         {
           userId: user.id,
-          stream:user.stream,
-          name: user.name,
+          
+          name: user.username,
           cell: user.cell,
           
         },
@@ -368,7 +409,7 @@ app.post("/login", loginLimiter, async (req, res) => {
         {
           userId: user.id,
           
-          name: user.name,
+          name: user.username,
           cell: user.cell,
           
         },
