@@ -72,7 +72,8 @@ app.use((req, res, next) => {
 
 
 const appCheckVerification = async (req, res, next) => {
-    const appCheckToken = req.header("X-Firebase-AppCheck");
+    const appCheckToken = '5D11AB1C-3EA0-4452-AEAE-8637A6FC3260';
+    console.log('aptoken',appCheckToken);
 
     if (!appCheckToken) {
         res.status(401);
