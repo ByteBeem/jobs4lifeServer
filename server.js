@@ -1,24 +1,15 @@
 const cluster = require("cluster");
 const http = require("http");
 const express = require("express");
-const bodyParser = require("body-parser");
 const firebase = require("firebase-admin");
-const csrf = require("csurf");
-const csrfProtection = csrf({ cookie: true });
 const hpp = require('hpp');
-const nodemailer = require("nodemailer");
-const axios = require("axios");
 const saltRounds = 12;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const helmet = require('helmet');
-const { Server } = require('socket.io');
-const randomColor = require('randomcolor');
-const paypal = require('paypal-rest-sdk');
-const crypto = require('crypto');
+
 
 const app = express();
 const port = process.env.PORT || 3000;
