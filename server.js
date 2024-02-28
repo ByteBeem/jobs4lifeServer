@@ -80,7 +80,7 @@ app.post("/signup", async (req, res) => {
     if (!firebaseToken) {
       return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
     }
-    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
+    const checkTokenResponse = await auth().appCheck().verifyToken(firebaseToken);
     if (!checkTokenResponse) {
       return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
     }
