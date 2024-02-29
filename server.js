@@ -13,6 +13,8 @@ const helmet = require('helmet');
 
 
 
+
+
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
@@ -87,7 +89,8 @@ const appCheckVerification = async (req, res, next) => {
     let temporaryhash= await bcrypt.hash(apptoken , saltRoundsTokenApp);
 
     
-    const isMatch = await bcrypt.compare(apptoken, temporaryhash);
+    const isMatch = await bcrypt.compare(hashedTokenApp, temporaryhash);
+    
 
   
     if (isMatch) {
