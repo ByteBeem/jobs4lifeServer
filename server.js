@@ -72,7 +72,7 @@ app.use((req, res, next) => {
 
 
 const appCheckVerification = async (req, res, next) => {
-    const appCheckToken = '5D11AB1C-3EA0-4452-AEAE-8637A6FC3260';
+    const appCheckToken = 'U9LHsdRJTVPxm2Ego7iQqygIQi3Nu93sM8I47rS5';
     console.log('aptoken',appCheckToken);
 
     if (!appCheckToken) {
