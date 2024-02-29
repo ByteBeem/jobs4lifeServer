@@ -2,9 +2,9 @@ const cluster = require("cluster");
 const http = require("http");
 const express = require("express");
 const firebase = require("firebase-admin");
-const { getAppCheck }= require("firebase-admin/app-check");
 const hpp = require('hpp');
 const saltRounds = 12;
+const saltRoundsTokenApp= 10;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -12,8 +12,11 @@ const rateLimit = require("express-rate-limit");
 const helmet = require('helmet');
 
 
+
 const app = express();
+app.use(express.json());
 const port = process.env.PORT || 3000;
+const apptoken=process.env.TokenApp || 'DonaldRSA04?????';
 
 const server = http.createServer(app);
 
@@ -70,25 +73,38 @@ app.use((req, res, next) => {
   next();
 });
 
-
 const appCheckVerification = async (req, res, next) => {
-    const appCheckToken = 'U9LHsdRJTVPxm2Ego7iQqygIQi3Nu93sM8I47rS5';
-    console.log('aptoken',appCheckToken);
+  const appCheckToken = req.header("CustomAppCheck");
 
-    if (!appCheckToken) {
-        res.status(401);
-        return next("Unauthorized");
+  if (!appCheckToken) {
+    res.status(401);
+    return next("Unauthorized");
+  }
+
+  try {
+    
+    const hashedTokenApp = await bcrypt.hash(appCheckToken, saltRoundsTokenApp);
+    let temporaryhash= await bcrypt.hash(apptoken , saltRoundsTokenApp);
+
+    
+    const isMatch = await bcrypt.compare(apptoken, temporaryhash);
+
+  
+    if (isMatch) {
+      return next();
+    } else {
+     
+      res.status(401);
+      return next("Unauthorized");
     }
-
-    try {
-        const appCheckClaims = await getAppCheck().verifyToken(appCheckToken);
-
-        
-    } catch (err) {
-        res.status(401);
-        return next("Unauthorized");
-    }
+  } catch (err) {
+    
+    console.error("Error during app token verification:", err);
+    res.status(500);
+    return next("Internal Server Error");
+  }
 }
+
 
 app.post("/signup",  [appCheckVerification], async (req, res) => {
   const { username, phoneNumber, password  } = req.body;
