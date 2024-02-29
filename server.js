@@ -79,32 +79,23 @@ const appCheckVerification = async (req, res, next) => {
   const appCheckToken = req.header("CustomAppCheck");
 
   if (!appCheckToken) {
-    res.status(401);
-    return next("Unauthorized");
+    res.status(401).send("Unauthorized");
+    return;
   }
 
   try {
-    
-    const hashedTokenApp = await bcrypt.hash(appCheckToken, saltRoundsTokenApp);
-    let temporaryhash= await bcrypt.hash(apptoken , saltRoundsTokenApp);
+   
+    const hashedTokenFromRequest = await bcrypt.hash(appCheckToken, saltRoundsTokenApp);
+    const isMatch = await bcrypt.compare(apptoken, hashedTokenFromRequest);
 
-    
-    const isMatch = await bcrypt.compare(hashedTokenApp, temporaryhash);
-    
-
-  
     if (isMatch) {
-      return next();
+      next();
     } else {
-     
-      res.status(401);
-      return next("Unauthorized");
+      res.status(401).send("Unauthorized");
     }
   } catch (err) {
-    
     console.error("Error during app token verification:", err);
-    res.status(500);
-    return next("Internal Server Error");
+    res.status(500).send("Internal Server Error");
   }
 }
 
@@ -371,18 +362,12 @@ app.get('/comments', async (req, res) => {
 
 
 
-app.post("/login", loginLimiter, async (req, res) => {
+app.post("/login", loginLimiter,[appCheckVerification], async (req, res) => {
   const { phoneNumber, password } = req.body;
+  console.log(req.body);
 
   try {
-    const firebaseToken = req.headers['x-firebase-appcheck'];
-    if (!firebaseToken) {
-      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-    }
-    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-    if (!checkTokenResponse) {
-      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-    }
+   
 
     const snapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     const userData = snapshot.val();
