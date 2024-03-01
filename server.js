@@ -4,7 +4,7 @@ const express = require("express");
 const firebase = require("firebase-admin");
 const hpp = require('hpp');
 const saltRounds = 12;
-const saltRoundsTokenApp= 10;
+const saltRoundsTokenApp = 10;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -18,7 +18,7 @@ const helmet = require('helmet');
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
-const apptoken=process.env.TokenApp || 'DonaldRSA04?????';
+const apptoken = process.env.TokenApp || 'DonaldRSA04?';
 
 const server = http.createServer(app);
 
@@ -41,10 +41,10 @@ app.set('trust proxy', 'loopback');
 
 
 const loginLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 5,
-    message: "Too many login attempts from this IP, please try again later",
-  });
+  windowMs: 5 * 60 * 1000,
+  max: 5,
+  message: "Too many login attempts from this IP, please try again later",
+});
 
 const corsOptions = {
   origin: ['https://www.shopient.co.za', 'https://www.shopient.co.za', 'https://www.shopient.co.za'],
@@ -78,15 +78,18 @@ app.use((req, res, next) => {
 const appCheckVerification = async (req, res, next) => {
   const appCheckToken = req.header("CustomAppCheck");
 
+
   if (!appCheckToken) {
     res.status(401).send("Unauthorized");
     return;
   }
 
   try {
-   
+
     const hashedTokenFromRequest = await bcrypt.hash(appCheckToken, saltRoundsTokenApp);
+
     const isMatch = await bcrypt.compare(apptoken, hashedTokenFromRequest);
+
 
     if (isMatch) {
       next();
@@ -100,11 +103,11 @@ const appCheckVerification = async (req, res, next) => {
 }
 
 
-app.post("/signup",  [appCheckVerification], async (req, res) => {
-  const { username, phoneNumber, password  } = req.body;
+app.post("/signup", [appCheckVerification], async (req, res) => {
+  const { username, phoneNumber, password } = req.body;
 
   try {
-    
+
 
     const cellSnapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     if (cellSnapshot.exists()) {
@@ -118,7 +121,7 @@ app.post("/signup",  [appCheckVerification], async (req, res) => {
       username: username,
       cell: phoneNumber,
       password: hashedPassword,
-     
+
     });
 
     res.status(201).json({ message: "User created successfully." });
@@ -133,57 +136,43 @@ app.post("/signup",  [appCheckVerification], async (req, res) => {
 
 
 
-app.post('/upload',async (req, res) => {
+app.post('/upload', async (req, res) => {
   const postData = req.body;
-  const firebaseToken = req.headers['x-firebase-appcheck'];
-  if (!firebaseToken) {
-    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-  }
-  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-  if (!checkTokenResponse) {
-    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-  }
   
+
   if (!postData.caption) {
     postData.caption = "";
   }
-  
+
   const userRef = db.ref('userposts').push();
   userRef.set({
     imageUrl: postData.imageUrl,
     caption: postData.caption,
     time: postData.timestamp,
-    user : postData.token,
+    user: postData.token,
     content_type: postData.content_type,
-    
+
   });
 
   res.status(200).json({ message: "Post created successfully." });
 });
 
-app.post('/PostComments', async(req, res) => {
+app.post('/PostComments', async (req, res) => {
   const postData = req.body;
-  const firebaseToken = req.headers['x-firebase-appcheck'];
-  if (!firebaseToken) {
-    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-  }
-  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-  if (!checkTokenResponse) {
-    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-  }
   
+
   if (!postData.caption) {
     postData.caption = "";
   }
-  
+
   const userRef = db.ref('comments').push();
   userRef.set({
     imageUrl: postData.imageUrl,
     caption: postData.caption,
     time: postData.timestamp,
-    
+
     content_type: postData.content_type,
-    postId:postData.postId
+    postId: postData.postId
   });
 
   res.status(200).json({ message: "Post created successfully.", data: postData });
@@ -191,14 +180,7 @@ app.post('/PostComments', async(req, res) => {
 
 app.get("/getUserData", async (req, res) => {
   const token = req.header("Authorization");
-  const firebaseToken = req.headers['x-firebase-appcheck'];
-    if (!firebaseToken) {
-      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-    }
-    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-    if (!checkTokenResponse) {
-      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-    }
+  
 
   if (!token || !token.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -209,7 +191,7 @@ app.get("/getUserData", async (req, res) => {
   try {
     const decodedToken = jwt.verify(tokenValue, secretKey);
 
-    
+
     if (!decodedToken.cell || !decodedToken.name) {
       return res.status(400).json({ error: "Malformed token. Missing required fields." });
     }
@@ -227,56 +209,42 @@ app.get("/getUserData", async (req, res) => {
   }
 });
 
-app.post('/TextComment',async (req, res) => {
+app.post('/TextComment', async (req, res) => {
   const postData = req.body;
-  const firebaseToken = req.headers['x-firebase-appcheck'];
-  if (!firebaseToken) {
-    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-  }
-  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-  if (!checkTokenResponse) {
-    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-  }
-  
+ 
+
   if (!postData.caption) {
     postData.caption = "";
   }
-  
+
   const userRef = db.ref('comments').push();
   userRef.set({
-    
+
     caption: postData.caption,
     time: postData.timestamp,
-    postId : postData.postId,
+    postId: postData.postId,
     content_type: postData.content_type
   });
 
   res.status(200).json({ message: "Post created successfully.", data: postData });
 });
 
-app.post('/uploadText', async(req, res) => {
+app.post('/uploadText', async (req, res) => {
   const postData = req.body;
-  const firebaseToken = req.headers['x-firebase-appcheck'];
-  if (!firebaseToken) {
-    return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-  }
-  const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-  if (!checkTokenResponse) {
-    return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-  }
-  
+ 
+
   if (!postData.caption) {
     postData.caption = "";
   }
-  
+
   const userRef = db.ref('userposts').push();
   userRef.set({
-    
+
     caption: postData.caption,
     time: postData.timestamp,
-    user : postData.token,
+    user: postData.token,
     content_type: postData.content_type,
-    
+
   });
 
   res.status(200).json({ message: "Post created successfully." });
@@ -287,19 +255,12 @@ app.post('/uploadText', async(req, res) => {
 
 app.get('/posts', async (req, res) => {
   try {
-    const firebaseToken = req.headers['x-firebase-appcheck'];
-    if (!firebaseToken) {
-      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-    }
-    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-    if (!checkTokenResponse) {
-      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-    }
+    
     const authHeader = req.headers['authorization'];
     let postsArray;
 
     if (authHeader) {
-      const token = authHeader.substring(7); 
+      const token = authHeader.substring(7);
       if (token === "") {
         const postsSnapshot = await db.ref('posts').once('value');
         const postsData = postsSnapshot.val();
@@ -319,7 +280,7 @@ app.get('/posts', async (req, res) => {
     }
 
     postsArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
     res.json(postsArray);
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -329,31 +290,24 @@ app.get('/posts', async (req, res) => {
 
 app.get('/comments', async (req, res) => {
   try {
-    const firebaseToken = req.headers['x-firebase-appcheck'];
-    if (!firebaseToken) {
-      return res.status(401).json({ error: "Unauthorized. Firebase App Check token is missing." });
-    }
-    const checkTokenResponse = await auth().verifyAppCheckToken(firebaseToken);
-    if (!checkTokenResponse) {
-      return res.status(401).json({ error: "Unauthorized. Invalid Firebase App Check token." });
-    }
+   
     const authHeader = req.headers['authorization'];
     let commentsArray = [];
 
     if (authHeader) {
-      const postId = authHeader.substring(7); 
-      
-      
+      const postId = authHeader.substring(7);
+
+
       const commentsSnapshot = await db.ref('comments').orderByChild('postId').equalTo(postId).once('value');
       const commentsData = commentsSnapshot.val();
       if (commentsData) {
-        commentsArray = Object.values(commentsData); 
+        commentsArray = Object.values(commentsData);
       }
     }
 
-    commentsArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); 
-    
-    res.json(commentsArray); 
+    commentsArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    res.json(commentsArray);
   } catch (error) {
     console.error("Error fetching comments:", error);
     res.status(500).json({ error: 'Internal server error' });
@@ -361,13 +315,10 @@ app.get('/comments', async (req, res) => {
 });
 
 
-
-app.post("/login", loginLimiter,[appCheckVerification], async (req, res) => {
+app.post("/login", loginLimiter, [appCheckVerification], async (req, res) => {
   const { phoneNumber, password } = req.body;
-  console.log(req.body);
 
   try {
-   
 
     const snapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     const userData = snapshot.val();
@@ -378,36 +329,38 @@ app.post("/login", loginLimiter,[appCheckVerification], async (req, res) => {
 
     const userValues = Object.values(userData);
 
+    const userId = Object.keys(userData)[0];
+
+
     if (!userValues || userValues.length === 0) {
       return res.status(409).json({ error: "User not found." });
     }
 
     const user = userValues[0];
 
+
     if (user.token) {
       let decodedToken;
       try {
         decodedToken = jwt.verify(user.token, secretKey);
+
       } catch (err) {
-        
         console.error("Token verification error:", err);
         return res.status(500).json({ error: "Token verification failed." });
       }
 
-      const { userId } = decodedToken;
+      const userIdTwo = decodedToken.userId;
 
-      if (userId !== user.id) {
+
+      if (userIdTwo !== userId) {
         return res.status(401).json({ error: "Unauthorized access." });
       }
 
-      
       const newToken = jwt.sign(
         {
-          userId: user.id,
-          
+          userId: userId,
           name: user.username,
           cell: user.cell,
-          
         },
         secretKey,
         { expiresIn: "7D" }
@@ -421,23 +374,20 @@ app.post("/login", loginLimiter,[appCheckVerification], async (req, res) => {
         return res.status(401).json({ error: "Incorrect password." });
       }
 
-     
       const newToken = jwt.sign(
         {
-          userId: user.id,
-          
+          userId: userId,
           name: user.username,
           cell: user.cell,
-          
         },
         secretKey,
         { expiresIn: "7D" }
       );
 
-      
-      await db.ref(`users/${user.id}`).update({ token: newToken ,  stream :user.stream , cell: user.cell,});
 
-      res.status(200).json({ token: newToken ,  stream :user.stream  , cell: user.cell,});
+      await db.ref(`users/${userId}`).update({ token: newToken });
+
+      res.status(200).json({ token: newToken });
     }
   } catch (err) {
     console.error("Error during login:", err);
