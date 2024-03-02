@@ -319,81 +319,48 @@ app.post("/login", loginLimiter, [appCheckVerification], async (req, res) => {
   const { phoneNumber, password } = req.body;
 
   try {
-
+    // Check if the user exists
     const snapshot = await db.ref('users').orderByChild('cell').equalTo(phoneNumber).once('value');
     const userData = snapshot.val();
 
-    if (!userData) {
+    if (!userData || Object.keys(userData).length === 0) {
       return res.status(401).json({ error: "User not found." });
     }
 
-    const userValues = Object.values(userData);
-
+    // Get the user data
     const userId = Object.keys(userData)[0];
+    const user = userData[userId];
 
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!userValues || userValues.length === 0) {
-      return res.status(409).json({ error: "User not found." });
+    if (!isMatch) {
+      return res.status(401).json({ error: "Incorrect password." });
     }
 
-    const user = userValues[0];
+    // Generate token
+    const newToken = jwt.sign(
+      {
+        userId: userId,
+        name: user.username,
+        cell: user.cell,
+      },
+      secretKey,
+      { expiresIn: "7D" }
+    );
 
+    // Update user token in the database
+    await db.ref(`users/${userId}`).update({ token: newToken });
 
-    if (user.token) {
-      let decodedToken;
-      try {
-        decodedToken = jwt.verify(user.token, secretKey);
+    // Send token in the response
+    res.status(200).json({ token: newToken });
 
-      } catch (err) {
-        console.error("Token verification error:", err);
-        return res.status(500).json({ error: "Token verification failed." });
-      }
-
-      const userIdTwo = decodedToken.userId;
-
-
-      if (userIdTwo !== userId) {
-        return res.status(401).json({ error: "Unauthorized access." });
-      }
-
-      const newToken = jwt.sign(
-        {
-          userId: userId,
-          name: user.username,
-          cell: user.cell,
-        },
-        secretKey,
-        { expiresIn: "7D" }
-      );
-
-      return res.status(200).json({ token: newToken });
-    } else {
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return res.status(401).json({ error: "Incorrect password." });
-      }
-
-      const newToken = jwt.sign(
-        {
-          userId: userId,
-          name: user.username,
-          cell: user.cell,
-        },
-        secretKey,
-        { expiresIn: "7D" }
-      );
-
-
-      await db.ref(`users/${userId}`).update({ token: newToken });
-
-      res.status(200).json({ token: newToken });
-    }
   } catch (err) {
     console.error("Error during login:", err);
     return res.status(500).json({ error: "Internal server error. Please try again later." });
   }
 });
+
 
 
 
