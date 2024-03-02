@@ -34,6 +34,35 @@ router.use(async(req, res, next) => {
         res.status(500).send("Internal Server Error");
     }
 });
+router.post('/postJobs',  async (req, res) => {
+    const { title, description, requirements, address, salary, jobLink } = req.body;
+
+    try {
+        // Validate job details
+        if (!title || !description || !requirements || !address || !salary || !jobLink) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Create job post object
+        const jobPost = {
+            title: title,
+            description: description,
+            requirements: requirements,
+            address: address,
+            salary: salary,
+            jobLink: jobLink
+        };
+
+        // Store job post data in Firebase
+        const jobRef = db.ref('jobPosts').push();
+        await jobRef.set(jobPost);
+
+        res.status(201).json({ message: "Job post added successfully." });
+    } catch (err) {
+        console.error("Error adding job post:", err);
+        return res.status(500).json({ error: "Internal server error. Please try again later." });
+    }
+});
 
 
 router.get("/", async (req, res) => {
