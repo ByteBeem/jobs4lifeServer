@@ -6,6 +6,8 @@ const firebase = require("firebase-admin");
 const saltRounds = 12;
 const saltRoundsTokenApp = 10;
 
+const apptoken = process.env.appToken || 'DonaldRSA04?';
+
 const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
 
