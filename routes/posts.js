@@ -106,24 +106,30 @@ router.get("/", async (req, res) => {
 
 
 router.post("/create", async (req, res) => {
+    const token = req.header("Authorization");
+    const tokenValue = token.replace("Bearer ", "");
     const postData = req.body;
-  
 
-    if (!postData.caption) {
-      postData.caption = "";
+    
+    try {
+        const decodedToken = jwt.verify(tokenValue, secretKey);
+        
+        const cell = decodedToken.cell;
+
+
+        const userRef = db.ref('userposts').push();
+        userRef.set({
+            
+            post: postData.text || '', 
+            time: Date.now(),
+            user: cell, 
+        });
+
+        res.status(200).json({ message: "Post created successfully." });
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        res.status(500).json({ error: 'Error verifying token.' });
     }
-  
-    const userRef = db.ref('userposts').push();
-    userRef.set({
-      imageUrl: postData.imageUrl,
-      caption: postData.caption,
-      time: postData.timestamp,
-      user: postData.token,
-      content_type: postData.content_type,
-  
-    });
-  
-    res.status(200).json({ message: "Post created successfully." });
 });
 
 module.exports = router;
