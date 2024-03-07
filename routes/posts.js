@@ -69,7 +69,7 @@ router.post('/postJobs',  async (req, res) => {
 });
 
 
-router.get("/", async (req, res) => {
+router.get("/fetch", async (req, res) => {
     try {
     
         const authHeader = req.headers['authorization'];
@@ -78,11 +78,11 @@ router.get("/", async (req, res) => {
         if (authHeader) {
           const token = authHeader.substring(7);
           if (token === "") {
-            const postsSnapshot = await db.ref('posts').once('value');
+            const postsSnapshot = await db.ref('userposts').once('value');
             const postsData = postsSnapshot.val();
             postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
           } else {
-            const postsSnapshot = await db.ref('posts').once('value');
+            const postsSnapshot = await db.ref('userposts').once('value');
             const postsData = postsSnapshot.val();
             const filteredPosts = Object.keys(postsData)
               .filter(key => postsData[key].stream === token)
@@ -90,7 +90,7 @@ router.get("/", async (req, res) => {
             postsArray = filteredPosts;
           }
         } else {
-          const postsSnapshot = await db.ref('posts').once('value');
+          const postsSnapshot = await db.ref('userposts').once('value');
           const postsData = postsSnapshot.val();
           postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
         }
