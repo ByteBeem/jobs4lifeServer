@@ -72,11 +72,12 @@ router.post('/postJobs',  async (req, res) => {
 router.get("/fetch", async (req, res) => {
     try {
     
-        const authHeader = req.headers['authorization'];
+        const tokenValue = req.header("Authorization");
         let postsArray;
     
-        if (authHeader) {
-          const token = authHeader.substring(7);
+        if (tokenValue) {
+            
+          const token = tokenValue.replace("Bearer ", "");
           if (token === "") {
             const postsSnapshot = await db.ref('userposts').once('value');
             const postsData = postsSnapshot.val();
