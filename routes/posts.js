@@ -105,7 +105,7 @@ router.get("/", async (req, res) => {
 });
 
 
-router.post("/create", async (req, res) => {
+router.post("/Post", async (req, res) => {
     const token = req.header("Authorization");
     const tokenValue = token.replace("Bearer ", "");
     const postData = req.body;
