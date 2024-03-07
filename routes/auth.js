@@ -82,29 +82,7 @@ router.post("/login", async (req, res) => {
         const userId = Object.keys(userData)[0];
         const user = userData[userId];
 
-        if (user.token) {
-            try {
-                const decodedToken = jwt.verify(user.token, secretKey);
-                if (decodedToken.userId !== userId) {
-                    throw new Error("Unauthorized access.");
-                }
 
-                const newToken = jwt.sign(
-                    {
-                        userId: userId,
-                        name: user.username,
-                        cell: user.cell,
-                    },
-                    secretKey,
-                    { expiresIn: "7D" }
-                );
-
-                return res.status(200).json({ token: newToken });
-            } catch (err) {
-                console.error("Token verification error:", err);
-                return res.status(500).json({ error: "Token verification failed." });
-            }
-        } else {
             const isMatch = await bcrypt.compare(password, user.password);
 
             if (!isMatch) {
@@ -121,7 +99,7 @@ router.post("/login", async (req, res) => {
                 { expiresIn: "7D" }
             );
 
-            await db.ref(`users/${userId}`).update({ token: newToken });
+            
 
             res.status(200).json({ token: newToken });
         }
