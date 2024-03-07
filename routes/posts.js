@@ -124,8 +124,14 @@ router.post("/create", async (req, res) => {
             time: Date.now(),
             user: cell, 
         });
+         const newPostData = {
+            
+            post: postData.text,
+            time: postData.timestamp,
+            user: userCell,
+        };
 
-        res.status(200).json({ message: "Post created successfully." });
+        res.status(200).json(newPostData); 
     } catch (error) {
         console.error('Error verifying token:', error);
         res.status(500).json({ error: 'Error verifying token.' });
