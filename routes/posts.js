@@ -71,40 +71,25 @@ router.post('/postJobs',  async (req, res) => {
 
 router.get("/fetch", async (req, res) => {
     try {
-    
-        const tokenValue = req.header("Authorization");
-        let postsArray;
-    
-        if (tokenValue) {
-            
-          const token = tokenValue.replace("Bearer ", "");
-            console.log(token);
-          if (token === "") {
-            const postsSnapshot = await db.ref('userposts').once('value');
-            const postsData = postsSnapshot.val();
-            postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
-          } else {
-            const postsSnapshot = await db.ref('userposts').once('value');
-            const postsData = postsSnapshot.val();
-            const filteredPosts = Object.keys(postsData)
-              .filter(key => postsData[key].user === token)
-              .map(key => ({ id: key, ...postsData[key] }));
-            postsArray = filteredPosts;
-          }
-        } else {
-          const postsSnapshot = await db.ref('userposts').once('value');
-          const postsData = postsSnapshot.val();
-          postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
+        const postsSnapshot = await db.ref('userposts').once('value');
+        const postsData = postsSnapshot.val();
+
+        // Check if postsData is null or empty
+        if (!postsData || Object.keys(postsData).length === 0) {
+            return res.status(404).json({ error: 'No posts found' });
         }
-    
+
+        const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
+
         postsArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
         res.json(postsArray);
-      } catch (error) {
+    } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(500).json({ error: 'Internal server error' });
-      }
+    }
 });
+
 
 
 router.post("/Post", async (req, res) => {
