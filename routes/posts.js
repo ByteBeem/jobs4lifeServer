@@ -78,6 +78,7 @@ router.get("/fetch", async (req, res) => {
         if (tokenValue) {
             
           const token = tokenValue.replace("Bearer ", "");
+            console.log(token);
           if (token === "") {
             const postsSnapshot = await db.ref('userposts').once('value');
             const postsData = postsSnapshot.val();
@@ -86,7 +87,7 @@ router.get("/fetch", async (req, res) => {
             const postsSnapshot = await db.ref('userposts').once('value');
             const postsData = postsSnapshot.val();
             const filteredPosts = Object.keys(postsData)
-              .filter(key => postsData[key].stream === token)
+              .filter(key => postsData[key].user === token)
               .map(key => ({ id: key, ...postsData[key] }));
             postsArray = filteredPosts;
           }
