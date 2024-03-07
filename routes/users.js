@@ -35,7 +35,7 @@ router.use(async(req, res, next) => {
 });
 
 
-router.get("/:id", async (req, res) => {
+router.get("/data", async (req, res) => {
     const token = req.header("Authorization");
   
 
@@ -56,7 +56,7 @@ router.get("/:id", async (req, res) => {
       const cell = decodedToken.cell;
       const name = decodedToken.name;
   
-      return res.status(200).json({ name: name, cell: cell });
+      return res.status(200).json({ username: name, cellphone: cell });
     } catch (err) {
       console.error("Error fetching user info:", err);
       if (err instanceof jwt.JsonWebTokenError) {
