@@ -1,7 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const firebase = require("firebase-admin");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const firebase = require("firebase-admin");
+const saltRounds = 12;
+const saltRoundsTokenApp = 10;
+
+const apptoken = process.env.appToken || 'DonaldRSA04?';
 
 const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
