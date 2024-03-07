@@ -102,7 +102,7 @@ router.post("/login", async (req, res) => {
             
 
             res.status(200).json({ token: newToken });
-        }
+        
     } catch (err) {
         console.error("Error during login:", err);
         return res.status(500).json({ error: "Internal server error. Please try again later." });
