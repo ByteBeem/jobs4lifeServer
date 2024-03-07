@@ -127,8 +127,7 @@ router.post("/create", async (req, res) => {
          const newPostData = {
             
             post: postData.text,
-            time: postData.timestamp,
-            user: userCell,
+            user: cell,
         };
 
         res.status(200).json(newPostData); 
