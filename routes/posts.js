@@ -73,7 +73,7 @@ router.post('/like/:postId', async (req, res) => {
 
   try {
     // Update the likes count in the Firebase Realtime Database
-    await db().ref(`posts/${postId}/likes`).transaction(likes => (likes || 0) + 1);
+    await firebase.database().ref(`posts/${postId}/likes`).transaction(likes => (likes || 0) + 1);
     
     res.status(200).send('Post liked successfully.');
   } catch (error) {
@@ -81,6 +81,7 @@ router.post('/like/:postId', async (req, res) => {
     res.status(500).send('An error occurred while liking the post.');
   }
 });
+
 
 router.get("/fetch", async (req, res) => {
     try {
