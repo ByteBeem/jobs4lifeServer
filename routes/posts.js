@@ -109,10 +109,12 @@ router.get("/fetch", async (req, res) => {
         }
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
+        console.log(postsArray)
 
         // Fetch likes and user IDs for each post
         const postsWithLikes = await Promise.all(postsArray.map(async post => {
             const likesSnapshot = await db.ref(`userposts/${post.id}/likes`).once('value');
+            console.log(likesSnapshot)
             const likesData = likesSnapshot.val() || {};
             const userLikes = Object.keys(likesData); 
 
