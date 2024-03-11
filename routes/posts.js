@@ -71,6 +71,7 @@ router.post('/postJobs',  async (req, res) => {
 router.post('/like/:postId', async (req, res) => {
   const postId = req.params.postId;
   const userId = req.body.userId; 
+    console.log(userId);
 
   try {
     // Update the likes count in the Firebase Realtime Database
