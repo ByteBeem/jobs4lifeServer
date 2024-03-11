@@ -37,7 +37,29 @@ router.use(async (req, res, next) => {
     }
 });
 
+// Fetch user data endpoint
+router.get('/user', async (req, res) => {
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decodedToken = jwt.verify(token, secretKey);
+    const cell = decodedToken.cell;
 
+    // Retrieve user data based on cell
+    const usersSnapshot = await db.ref('users').orderByChild('cell').equalTo(cell).once('value');
+    const userData = usersSnapshot.val();
+
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userId = Object.keys(userData)[0]; 
+
+    res.status(200).json({ id: userId });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 router.post("/signup", async (req, res) => {
     const { username, phoneNumber, password } = req.body;
