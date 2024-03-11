@@ -68,6 +68,19 @@ router.post('/postJobs',  async (req, res) => {
     }
 });
 
+router.post('/like/:postId', async (req, res) => {
+  const postId = req.params.postId;
+
+  try {
+    // Update the likes count in the Firebase Realtime Database
+    await db().ref(`posts/${postId}/likes`).transaction(likes => (likes || 0) + 1);
+    
+    res.status(200).send('Post liked successfully.');
+  } catch (error) {
+    console.error('Error liking post:', error);
+    res.status(500).send('An error occurred while liking the post.');
+  }
+});
 
 router.get("/fetch", async (req, res) => {
     try {
