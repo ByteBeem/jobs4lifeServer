@@ -82,7 +82,6 @@ router.post('/like/:postId', async (req, res) => {
   }
 });
 
-
 router.get("/fetch", async (req, res) => {
     try {
         const postsSnapshot = await db.ref('userposts').once('value');
@@ -95,14 +94,23 @@ router.get("/fetch", async (req, res) => {
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
 
-        postsArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // Fetch likes for each post
+        const postsWithLikes = await Promise.all(postsArray.map(async post => {
+            const likesSnapshot = await db.ref(`posts/${post.id}/likes`).once('value');
+            const likesCount = likesSnapshot.val() || 0;
 
-        res.json(postsArray);
+            return { ...post, likes: likesCount };
+        }));
+
+        postsWithLikes.sort((a, b) => b.time - a.time);
+
+        res.json(postsWithLikes);
     } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
