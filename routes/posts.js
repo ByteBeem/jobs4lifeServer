@@ -98,7 +98,6 @@ router.post('/like/:postId', async (req, res) => {
   }
 });
 
-
 router.get("/fetch", async (req, res) => {
     try {
         const postsSnapshot = await db.ref('userposts').once('value');
@@ -115,7 +114,7 @@ router.get("/fetch", async (req, res) => {
         const postsWithLikes = await Promise.all(postsArray.map(async post => {
             const likesSnapshot = await db.ref(`userposts/${post.id}/likes`).once('value');
             const likesData = likesSnapshot.val() || {};
-            const userLikes = Object.keys(likesData); // Get the user IDs who liked the post
+            const userLikes = Object.keys(likesData); 
 
             return { ...post, likes: userLikes.length, likedBy: userLikes };
         }));
