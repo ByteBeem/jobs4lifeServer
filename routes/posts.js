@@ -74,7 +74,7 @@ router.post('/like/:postId', async (req, res) => {
 
   try {
     // Update the likes count and include the user ID in the Firebase Realtime Database
-    await firebase.database().ref(`posts/${postId}`).transaction(post => {
+    await firebase.database().ref(`userposts/${postId}`).transaction(post => {
       if (post) {
         if (!post.likes) post.likes = 0;
         if (!post.likedBy) post.likedBy = {};
@@ -113,7 +113,7 @@ router.get("/fetch", async (req, res) => {
 
         // Fetch likes and user IDs for each post
         const postsWithLikes = await Promise.all(postsArray.map(async post => {
-            const likesSnapshot = await db.ref(`posts/${post.id}/likes`).once('value');
+            const likesSnapshot = await db.ref(`userposts/${post.id}/likes`).once('value');
             const likesData = likesSnapshot.val() || {};
             const userLikes = Object.keys(likesData); // Get the user IDs who liked the post
 
