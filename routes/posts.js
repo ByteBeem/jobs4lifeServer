@@ -70,10 +70,15 @@ router.post('/postJobs',  async (req, res) => {
 
 router.post('/like/:postId', async (req, res) => {
   const postId = req.params.postId;
+  const userId = req.body.userId; 
 
   try {
     // Update the likes count in the Firebase Realtime Database
-    await firebase.database().ref(`posts/${postId}/likes`).transaction(likes => (likes || 0) + 1);
+    await firebase.database().ref(`posts/${postId}/likes`).transaction(likes => {
+      if (!likes) likes = {};
+      likes[userId] = true; 
+      return likes;
+    });
     
     res.status(200).send('Post liked successfully.');
   } catch (error) {
@@ -94,12 +99,13 @@ router.get("/fetch", async (req, res) => {
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
 
-        // Fetch likes for each post
+        // Fetch likes and user IDs for each post
         const postsWithLikes = await Promise.all(postsArray.map(async post => {
             const likesSnapshot = await db.ref(`posts/${post.id}/likes`).once('value');
-            const likesCount = likesSnapshot.val() || 0;
+            const likesData = likesSnapshot.val() || {};
+            const userLikes = Object.keys(likesData); // Get the user IDs who liked the post
 
-            return { ...post, likes: likesCount };
+            return { ...post, likes: userLikes.length, likedBy: userLikes };
         }));
 
         postsWithLikes.sort((a, b) => b.time - a.time);
@@ -110,6 +116,7 @@ router.get("/fetch", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
