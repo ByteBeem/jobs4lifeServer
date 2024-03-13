@@ -191,7 +191,7 @@ router.post("/PostSell", async (req, res) => {
             post: postData.text || '', 
             time: Date.now(),
             user: cell, 
-            title:title,
+            title:postData.title,
             userId: postData.userId,
             price:postData.price,
             location:postData.location,
