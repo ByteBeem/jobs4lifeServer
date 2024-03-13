@@ -184,7 +184,7 @@ router.post("/Post", async (req, res) => {
         const cell = decodedToken.cell;
 
 
-        const userRef = db.ref('userposts').push();
+        const userRef = db.ref('selling').push();
         userRef.set({
             
             post: postData.text || '', 
