@@ -114,9 +114,9 @@ router.get("/fetch", async (req, res) => {
         }
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
-        console.log(postsArray)
 
-        
+        // Sort posts by time
+        postsArray.sort((a, b) => b.time - a.time);
 
         res.json(postsArray);
     } catch (error) {
@@ -124,6 +124,7 @@ router.get("/fetch", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
