@@ -5,12 +5,17 @@ const jwt = require("jsonwebtoken");
 const firebase = require("firebase-admin");
 const saltRounds = 12;
 const saltRoundsTokenApp = 10;
-
+const bucket = admin.storage().bucket();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const apptoken = process.env.appToken || 'DonaldRSA04?';
-
+const serviceAccount = require('../key.json');
 const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
-
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: 'gs://jobs4life-d6926.appspot.com',
+});
 
 router.use(async(req, res, next) => {
     const appCheckToken = req.header("CustomAppCheck");
@@ -131,6 +136,49 @@ router.get("/fetch", async (req, res) => {
 });
 
 
+
+
+router.post('/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+
+    const originalName = req.file.originalname;
+
+    
+    const filename = `${Date.now()}-${originalName}`;
+
+    // Create a reference to the Firebase Storage bucket
+    const file = bucket.file(filename);
+
+    // Create a write stream to upload the image
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    stream.on('error', (err) => {
+      return res.status(500).send({ error: 'Error uploading file' });
+    });
+
+    stream.on('finish', async () => {
+      // Make the image publicly accessible and get its download URL
+      await file.makePublic();
+      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+
+      // Send the download URL back to the client
+      res.status(200).send({ downloadURL });
+    });
+
+    // Write the image data to the Firebase Storage bucket
+    stream.end(req.file.buffer);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
 
 
 router.post("/PostSell", async (req, res) => {
