@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const firebase = require("firebase-admin");
 const saltRounds = 12;
-const admin = require('firebase-admin');
 const saltRoundsTokenApp = 10;
 const apptoken = process.env.appToken || 'DonaldRSA04?';
 const serviceAccount = require('../key.json');
@@ -13,7 +12,7 @@ const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
 
 
 
-const bucket = admin.storage().bucket();
+const bucket = firebase.storage().bucket();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
