@@ -9,7 +9,7 @@ const apptoken = process.env.appToken || 'DonaldRSA04?';
 const serviceAccount = require('../key.json');
 const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
-
+const multer = require('multer');
 
 
 const bucket = firebase.storage().bucket();
