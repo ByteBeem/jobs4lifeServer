@@ -20,6 +20,7 @@ const firebaseServiceAccount = require("./key.json");
 firebase.initializeApp({
   credential: firebase.credential.cert(firebaseServiceAccount),
   databaseURL: "https://jobs4life-d6926-default-rtdb.asia-southeast1.firebasedatabase.app",
+  storageBucket: 'jobs4life-d6926.appspot.com', 
 });
 
 
