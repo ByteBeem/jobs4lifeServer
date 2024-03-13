@@ -133,6 +133,44 @@ router.get("/fetch", async (req, res) => {
 
 
 
+router.post("/PostSell", async (req, res) => {
+    const token = req.header("Authorization");
+    const tokenValue = token.replace("Bearer ", "");
+    const postData = req.body;
+
+    
+    try {
+        const decodedToken = jwt.verify(tokenValue, secretKey);
+        
+        const cell = decodedToken.cell;
+
+
+        const userRef = db.ref('userposts').push();
+        userRef.set({
+            
+            post: postData.text || '', 
+            time: Date.now(),
+            user: cell, 
+            userId: postData.userId,
+            price:postData.price,
+            location:postData.location,
+            phone:postData.phone,
+            imageLink:postData.imageLink,
+        });
+         const newPostData = {
+            
+            post: postData.text,
+            user: cell,
+        };
+
+        res.status(200).json(newPostData); 
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        res.status(500).json({ error: 'Error verifying token.' });
+    }
+});
+
+
 
 router.post("/Post", async (req, res) => {
     const token = req.header("Authorization");
