@@ -6,9 +6,6 @@ const firebase = require("firebase-admin");
 const saltRounds = 12;
 const admin = require('firebase-admin');
 const saltRoundsTokenApp = 10;
-const bucket = admin.storage().bucket();
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 const apptoken = process.env.appToken || 'DonaldRSA04?';
 const serviceAccount = require('../key.json');
 const db = firebase.database();
@@ -17,6 +14,10 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: 'jobs4life-d6926.appspot.com', 
 });
+
+const bucket = admin.storage().bucket();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 
 router.use(async(req, res, next) => {
