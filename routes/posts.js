@@ -15,8 +15,9 @@ const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'gs://jobs4life-d6926.appspot.com',
+  storageBucket: 'jobs4life-d6926.appspot.com', 
 });
+
 
 router.use(async(req, res, next) => {
     const appCheckToken = req.header("CustomAppCheck");
