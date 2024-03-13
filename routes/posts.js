@@ -114,6 +114,7 @@ router.get("/fetch", async (req, res) => {
         }
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
+        console.log(postsArray);
 
         // Sort posts by time
         postsArray.sort((a, b) => b.time - a.time);
