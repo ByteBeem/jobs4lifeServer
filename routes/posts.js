@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const firebase = require("firebase-admin");
 const saltRounds = 12;
+const admin = require('firebase-admin');
 const saltRoundsTokenApp = 10;
 const bucket = admin.storage().bucket();
 const storage = multer.memoryStorage();
