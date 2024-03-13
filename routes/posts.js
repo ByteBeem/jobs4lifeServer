@@ -198,6 +198,7 @@ router.post("/PostSell", async (req, res) => {
             phone:postData.phone,
             imageLink:postData.imageLink,
         });
+        console.log(postData.imageLink);
          const newPostData = {
             
             post: postData.text,
