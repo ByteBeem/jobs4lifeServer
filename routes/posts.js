@@ -10,10 +10,8 @@ const apptoken = process.env.appToken || 'DonaldRSA04?';
 const serviceAccount = require('../key.json');
 const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'jobs4life-d6926.appspot.com', 
-});
+
+
 
 const bucket = admin.storage().bucket();
 const storage = multer.memoryStorage();
