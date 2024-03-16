@@ -60,7 +60,7 @@ router.post("/data", async (req, res) => {
         // Extract user IDs and usernames
         const userData = Object.keys(users).map(userId => ({
             id: userId,
-            name: users[userId].name
+            name: users[userId].username
         }));
 
         return res.status(200).json(userData);
