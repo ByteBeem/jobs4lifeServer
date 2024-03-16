@@ -79,6 +79,7 @@ router.post("/messages", async (req, res) => {
     try {
         const userMessagesSnapshot = await db.ref('messages').child(userId).once('value');
         console.log(userMessagesSnapshot);
+        console.log(userMessagesSnapshot.val());
         const userMessages = userMessagesSnapshot.val() || [];
 
         res.status(200).json(userMessages);
