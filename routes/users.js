@@ -39,35 +39,37 @@ router.use(async(req, res, next) => {
     }
 });
 
+router.post("/data", async (req, res) => {
+    const token = req.body.token;
 
-router.get("/data", async (req, res) => {
-    const token = req.header("Authorization");
-  
-
-    if (!token || !token.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized. Token not provided." });
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized. Token not provided." });
     }
-  
-    const tokenValue = token.replace("Bearer ", "");
-  
+
     try {
-      const decodedToken = jwt.verify(tokenValue, secretKey);
-  
-  
-      if (!decodedToken.cell || !decodedToken.name) {
-        return res.status(400).json({ error: "Malformed token. Missing required fields." });
-      }
-  
-      const cell = decodedToken.cell;
-      const name = decodedToken.name;
-  
-      return res.status(200).json({ username: name, cellphone: cell });
+        const decodedToken = jwt.verify(token, secretKey);
+
+        if (!decodedToken.cell || !decodedToken.name) {
+            return res.status(400).json({ error: "Malformed token. Missing required fields." });
+        }
+
+
+        const snapshot = await db.ref('users').once('value');
+        const users = snapshot.val();
+        
+        // Extract user IDs and usernames
+        const userData = Object.keys(users).map(userId => ({
+            id: userId,
+            name: users[userId].name
+        }));
+
+        return res.status(200).json(userData);
     } catch (err) {
-      console.error("Error fetching user info:", err);
-      if (err instanceof jwt.JsonWebTokenError) {
-        return res.status(401).json({ error: "Invalid token." });
-      }
-      return res.status(500).json({ error: "Internal server error. Please try again later." });
+        console.error("Error fetching user data:", err);
+        if (err instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({ error: "Invalid token." });
+        }
+        return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
 
