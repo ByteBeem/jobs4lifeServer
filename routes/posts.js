@@ -75,10 +75,11 @@ router.post('/postJobs',  async (req, res) => {
 
 router.post("/messages", async (req, res) => {
     const  userId  = req.body.userId;
+    console.log(userId);
 
     try {
         const userMessagesSnapshot = await db.ref('messages').child(userId).once('value');
-        console.log(userMessagesSnapshot);
+        
         console.log(userMessagesSnapshot.val());
         const userMessages = userMessagesSnapshot.val() || [];
 
