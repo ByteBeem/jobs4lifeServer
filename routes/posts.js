@@ -73,8 +73,8 @@ router.post('/postJobs',  async (req, res) => {
     }
 });
 
-router.get("/messages/:userId", async (req, res) => {
-    const { userId } = req.params;
+router.post("/messages", async (req, res) => {
+    const { userId } = req.body;
 
     try {
         const userMessagesSnapshot = await db.ref('messages').child(userId).once('value');
