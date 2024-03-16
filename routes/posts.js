@@ -73,6 +73,20 @@ router.post('/postJobs',  async (req, res) => {
     }
 });
 
+router.get("/messages/:userId", async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const userMessagesSnapshot = await db.ref('messages').child(userId).once('value');
+        const userMessages = userMessagesSnapshot.val() || [];
+
+        res.status(200).json(userMessages);
+    } catch (error) {
+        console.error("Error fetching user messages:", error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 router.post('/like/:postId', async (req, res) => {
   const postId = req.params.postId;
   const userId = req.body.userId;
