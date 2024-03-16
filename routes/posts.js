@@ -74,10 +74,11 @@ router.post('/postJobs',  async (req, res) => {
 });
 
 router.post("/messages", async (req, res) => {
-    const { userId } = req.body;
+    const  userId  = req.body.userId;
 
     try {
         const userMessagesSnapshot = await db.ref('messages').child(userId).once('value');
+        console.log(userMessagesSnapshot);
         const userMessages = userMessagesSnapshot.val() || [];
 
         res.status(200).json(userMessages);
