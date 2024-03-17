@@ -74,7 +74,7 @@ router.post("/data", async (req, res) => {
             if (user) {
                 userData.push({
                     id: snapshot.key,
-                    name: user.username 
+                    name: user.name 
                 });
             }
             console.log('user',user);
