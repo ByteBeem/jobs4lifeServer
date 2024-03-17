@@ -55,33 +55,36 @@ router.post("/data", async (req, res) => {
         }
 
         // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
+        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
-        console.log('messages',messages);
+        console.log('messages', messages);
 
         // Extract senderIds from messages
         const senderIds = Object.values(messages).map(message => message.senderId);
-        console.log('senderIds',senderIds);
+        console.log('senderIds', senderIds);
+
+        // Create a set to store unique senderIds
+        const uniqueSenderIds = new Set(senderIds);
 
         // Call findUsers function with senderIds
-        const usersSnapshots = await findUsers(senderIds);
-        console.log('usersSnapshots',usersSnapshots);
+        const usersSnapshots = await findUsers([...uniqueSenderIds]); // Convert set to array
+        console.log('usersSnapshots', usersSnapshots);
 
-const userInfo = [];
-usersSnapshots.forEach(snapshot => {
-    const user = snapshot.val();
-    senderIds.forEach(senderId => { 
-        const userData = user[senderId];
-        if (userData) {
-            userInfo.push({
-                id: senderId,
-                name: userData.username 
+        const userInfo = [];
+        usersSnapshots.forEach(snapshot => {
+            const user = snapshot.val();
+            [...uniqueSenderIds].forEach(senderId => { // Iterate through unique senderIds
+                const userData = user[senderId];
+                if (userData) {
+                    userInfo.push({
+                        id: senderId,
+                        name: userData.username 
+                    });
+                }
             });
-        }
-    });
-});
+        });
 
-          console.log('userInfo',userInfo);
+        console.log('userInfo', userInfo);
         return res.status(200).json(userInfo);
     } catch (err) {
         console.error("Error fetching user data:", err);
@@ -91,6 +94,7 @@ usersSnapshots.forEach(snapshot => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 
 async function findUsers(userIds) {
     try {
