@@ -38,7 +38,6 @@ router.use(async(req, res, next) => {
         res.status(500).send("Internal Server Error");
     }
 });
-
 router.post("/data", async (req, res) => {
     const token = req.body.token;
     const userId = req.body.userId; // Assuming userId is passed in the body
@@ -56,20 +55,25 @@ router.post("/data", async (req, res) => {
 
         // Query messages table to find messages where receiver is userId
         const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
-        const messages = messagesSnapshot.val() || {};
+        const messages = messagesSnapshot.val();
 
         // Extract senderIds from messages
         const senderIds = Object.values(messages).map(message => message.senderId);
 
         // Call findUsers function with senderIds
-        const usersSnapshot = await findUsers(senderIds);
-        const users = usersSnapshot.val();
+        const usersSnapshots = await findUsers(senderIds);
 
-        // Extract user IDs and usernames
-        const userData = Object.keys(users).map(userId => ({
-            id: userId,
-            name: users[userId].username
-        }));
+        // Process each user snapshot and extract user data
+        const userData = [];
+        usersSnapshots.forEach(snapshot => {
+            const user = snapshot.val();
+            if (user) {
+                userData.push({
+                    id: snapshot.key,
+                    name: user.username 
+                });
+            }
+        });
 
         return res.status(200).json(userData);
     } catch (err) {
@@ -80,6 +84,7 @@ router.post("/data", async (req, res) => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 async function findUsers(userIds) {
     try {
         const usersPromises = userIds.map(userId =>
