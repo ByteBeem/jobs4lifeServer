@@ -41,6 +41,7 @@ router.use(async(req, res, next) => {
 
 router.post("/data", async (req, res) => {
     const token = req.body.token;
+    const userId = req.body.userId; // Assuming userId is passed in the body
 
     if (!token) {
         return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -53,10 +54,17 @@ router.post("/data", async (req, res) => {
             return res.status(400).json({ error: "Malformed token. Missing required fields." });
         }
 
+        // Query messages table to find messages where receiver is userId
+        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
+        const messages = messagesSnapshot.val() || {};
 
-        const snapshot = await db.ref('users').once('value');
-        const users = snapshot.val();
-        
+        // Extract senderIds from messages
+        const senderIds = Object.values(messages).map(message => message.senderId);
+
+        // Call findUsers function with senderIds
+        const usersSnapshot = await findUsers(senderIds);
+        const users = usersSnapshot.val();
+
         // Extract user IDs and usernames
         const userData = Object.keys(users).map(userId => ({
             id: userId,
@@ -72,6 +80,16 @@ router.post("/data", async (req, res) => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+async function findUsers(userIds) {
+    try {
+        const usersSnapshot = await db.ref('users').orderByKey().equalTo(userIds).once('value');
+        return usersSnapshot;
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+    }
+}
+
 
 // POST /users/:id/update
 router.post("/:id/update", async (req, res) => {
