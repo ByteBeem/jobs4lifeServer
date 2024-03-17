@@ -55,7 +55,7 @@ router.post("/data", async (req, res) => {
         }
 
         // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
+        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
         console.log('messages',messages);
 
