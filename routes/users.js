@@ -77,8 +77,9 @@ router.post("/data", async (req, res) => {
                     name: user.username 
                 });
             }
+            console.log('user',user);
         });
-
+          console.log('userData',userData);
         return res.status(200).json(userData);
     } catch (err) {
         console.error("Error fetching user data:", err);
