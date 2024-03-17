@@ -74,8 +74,10 @@ router.post('/postJobs',  async (req, res) => {
 });
 
 router.post("/messages", async (req, res) => {
-    const receiverId = req.body.receiverId;
+    const receiverId = req.body.recieverId;
     const senderId = req.body.senderId;
+    console.log('receiverId',receiverId);
+    console.log('senderId',senderId);
     
     try {
         const userMessagesSnapshot = await db.ref('messages')
@@ -84,9 +86,10 @@ router.post("/messages", async (req, res) => {
             .once('value');
         
         const userMessages = userMessagesSnapshot.val() || {};
+        console.log('userMessages',userMessages);
         
         // Filter messages by receiverId
-        const filteredMessages = Object.values(userMessages).filter(message => message.receiver === receiverId);
+        const filteredMessages = Object.values(userMessages).filter(message => message.reciever === receiverId);
 
         res.status(200).json(filteredMessages);
     } catch (error) {
