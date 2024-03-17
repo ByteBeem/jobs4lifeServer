@@ -104,33 +104,30 @@ router.post("/login", async (req, res) => {
         const userId = Object.keys(userData)[0];
         const user = userData[userId];
 
+        const isMatch = await bcrypt.compare(password, user.password);
 
-            const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: "Incorrect password." });
+        }
 
-            if (!isMatch) {
-                return res.status(401).json({ error: "Incorrect password." });
-            }
+        const newToken = jwt.sign(
+            {
+                userId: userId,
+                name: user.username,
+                cell: user.cell,
+            },
+            secretKey,
+            { expiresIn: "7D" }
+        );
 
-            const newToken = jwt.sign(
-                {
-                    userId: userId,
-                    name: user.username,
-                    cell: user.cell,
-                },
-                secretKey,
-                { expiresIn: "7D" }
-            );
+        // Include userId in the response
+        res.status(200).json({ userId: userId, token: newToken });
 
-            
-
-            res.status(200).json({ token: newToken });
-        
     } catch (err) {
         console.error("Error during login:", err);
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
-
-
 });
+
 
 module.exports = router;
