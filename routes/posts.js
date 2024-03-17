@@ -152,7 +152,31 @@ router.get("/fetch", async (req, res) => {
     }
 });
 
+router.get("/fetchMy", async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        const postsSnapshot = await db.ref('userposts').once('value');
+        const postsData = postsSnapshot.val();
 
+        if (!postsData || Object.keys(postsData).length === 0) {
+            return res.status(404).json({ error: 'No posts found' });
+        }
+
+        // Filter posts based on userId
+        const filteredPostsArray = Object.keys(postsData)
+            .filter(key => postsData[key].userId === userId)
+            .map(key => ({ id: key, ...postsData[key] }));
+
+        if (filteredPostsArray.length === 0) {
+            return res.status(404).json({ error: 'No posts found for the provided user' });
+        }
+
+        res.json(filteredPostsArray);
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 
