@@ -82,13 +82,19 @@ router.post("/data", async (req, res) => {
 });
 async function findUsers(userIds) {
     try {
-        const usersSnapshot = await db.ref('users').orderByKey().equalTo(userIds).once('value');
-        return usersSnapshot;
+        const usersPromises = userIds.map(userId =>
+            db.ref('users').orderByKey().equalTo(userId).once('value')
+        );
+
+        const usersSnapshots = await Promise.all(usersPromises);
+
+        return usersSnapshots;
     } catch (error) {
         console.error("Error fetching users:", error);
         throw error;
     }
 }
+
 
 
 // POST /users/:id/update
