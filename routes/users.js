@@ -40,7 +40,8 @@ router.use(async(req, res, next) => {
 });
 router.post("/data", async (req, res) => {
     const token = req.body.token;
-    const userId = req.body.userId; // Assuming userId is passed in the body
+    const userId = req.body.userId; 
+    console.log('userId',userId);
 
     if (!token) {
         return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -56,12 +57,15 @@ router.post("/data", async (req, res) => {
         // Query messages table to find messages where receiver is userId
         const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
+        console.log('messages',messages);
 
         // Extract senderIds from messages
         const senderIds = Object.values(messages).map(message => message.senderId);
+        console.log('senderIds',senderIds);
 
         // Call findUsers function with senderIds
         const usersSnapshots = await findUsers(senderIds);
+        console.log('usersSnapshots',usersSnapshots);
 
         // Process each user snapshot and extract user data
         const userData = [];
