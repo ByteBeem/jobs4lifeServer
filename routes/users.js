@@ -67,20 +67,22 @@ router.post("/data", async (req, res) => {
         const usersSnapshots = await findUsers(senderIds);
         console.log('usersSnapshots',usersSnapshots);
 
-        // Process each user snapshot and extract user data
-        const userData = [];
-        usersSnapshots.forEach(snapshot => {
-            const user = snapshot.val();
-            if (user) {
-                userData.push({
-                    id: snapshot.key,
-                    name: user.name 
-                });
-            }
-            console.log('user',user);
-        });
-          console.log('userData',userData);
-        return res.status(200).json(userData);
+const userInfo = [];
+usersSnapshots.forEach(snapshot => {
+    const user = snapshot.val();
+    senderIds.forEach(senderId => { 
+        const userData = user[senderId];
+        if (userData) {
+            userInfo.push({
+                id: senderId,
+                name: userData.username 
+            });
+        }
+    });
+});
+
+          console.log('userInfo',userInfo);
+        return res.status(200).json(userInfo);
     } catch (err) {
         console.error("Error fetching user data:", err);
         if (err instanceof jwt.JsonWebTokenError) {
