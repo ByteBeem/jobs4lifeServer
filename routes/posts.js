@@ -141,16 +141,20 @@ router.get('/search', async (req, res) => {
     const searchTerm = req.query.search; 
 
     try {
-       
+      
         const searchSnapshot = await db.ref('userposts').once('value');
         const searchResults = [];
 
         searchSnapshot.forEach(snapshot => {
             const postData = snapshot.val();
+
             
-            if (postData.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                postData.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-                searchResults.push({ id: snapshot.key, ...postData });
+            if (postData && typeof postData === 'object' && 'title' in postData && 'post' in postData) {
+                // Check if title or description contains the search term (case-insensitive)
+                if (postData.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    postData.description.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    searchResults.push({ id: snapshot.key, ...postData });
+                }
             }
         });
 
