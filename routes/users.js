@@ -12,9 +12,8 @@ const db = firebase.database();
 const secretKey = process.env.secret_key || "DonaldMxolisiRSA04?????";
 
 
-router.use(async(req, res, next) => {
+router.use(async (req, res, next) => {
     const appCheckToken = req.header("CustomAppCheck");
-
 
     if (!appCheckToken) {
         res.status(401).send("Unauthorized");
@@ -22,11 +21,8 @@ router.use(async(req, res, next) => {
     }
 
     try {
-
         const hashedTokenFromRequest = await bcrypt.hash(appCheckToken, saltRoundsTokenApp);
-
         const isMatch = await bcrypt.compare(apptoken, hashedTokenFromRequest);
-
 
         if (isMatch) {
             next();
@@ -38,10 +34,10 @@ router.use(async(req, res, next) => {
         res.status(500).send("Internal Server Error");
     }
 });
-router.post("/data", async (req, res) => {
+
 router.post("/data", async (req, res) => {
     const token = req.body.token;
-    const userId = req.body.userId; 
+    const userId = req.body.userId;
     console.log('userId', userId);
 
     if (!token) {
@@ -56,7 +52,7 @@ router.post("/data", async (req, res) => {
         }
 
         // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
+        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
         console.log('messages', messages);
 
@@ -79,10 +75,10 @@ router.post("/data", async (req, res) => {
             const user = snapshot.val();
             senderIds.forEach(senderId => {
                 const userData = user[senderId];
-                if (userData && senderId !== userId) { 
+                if (userData && senderId !== userId) {
                     userInfo.push({
                         id: senderId,
-                        name: userData.username 
+                        name: userData.username
                     });
                 }
             });
@@ -99,11 +95,6 @@ router.post("/data", async (req, res) => {
     }
 });
 
-
-
-
-
-
 async function findUsers(userIds) {
     try {
         const usersPromises = userIds.map(userId =>
@@ -119,11 +110,9 @@ async function findUsers(userIds) {
     }
 }
 
-
-
 // POST /users/:id/update
 router.post("/:id/update", async (req, res) => {
-  // Update user data logic
+    // Update user data logic
 });
 
 module.exports = router;
