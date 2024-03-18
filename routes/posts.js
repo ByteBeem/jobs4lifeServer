@@ -73,32 +73,7 @@ router.post('/postJobs',  async (req, res) => {
     }
 });
 
-    const chatMessages = async (senderId, receiverId) => {
-    try {
-        // Retrieve messages from the database
-        const userMessagesSnapshot = await db.ref('messages')
-            .orderByChild('createdAt')
-            .once('value');
-
-        // Extract the message data from the snapshot
-        const userMessages = userMessagesSnapshot.val() || {};
-        console.log('userMessages',userMessages);
-
-        // Filter messages where senderId is the receiverId and receiverId is the senderId
-        const filteredMessages = Object.values(userMessages).filter(message =>
-            (message.senderId === receiverId && message.reciever === senderId)
-            ||
-             (message.senderId === senderId && message.reciever === receiverId)
-        );
-        console.log('filteredMessages',filteredMessages);
-
-        return filteredMessages;
-    } catch (error) {
-        console.error("Error fetching chat messages:", error);
-        return []; // Return an empty array if there's an error
-    }
-};
-
+   
 
 router.post("/messages", async (req, res) => {
     const receiverId = req.body.receiverId;
@@ -106,33 +81,28 @@ router.post("/messages", async (req, res) => {
     
     try {
         const userMessagesSnapshot = await db.ref('messages')
-            .orderByChild('createdAt')
+            .orderByChild('senderId')
+            .equalTo(senderId)
             .once('value');
 
         const userMessages = userMessagesSnapshot.val() || {};
-        const waiting= await chatMessages(senderId,receiverId)
-        console.log('waiting',waiting);
 
-        // Filter messages where the senderId matches the provided senderId and receiverId matches the provided receiverId
-        const filteredMessages = Object.values(userMessages).filter(message => 
-            (message.senderId === senderId && message.receiverId === receiverId)
-        );
+        const receiverMessagesSnapshot = await db.ref('messages')
+            .orderByChild('receiverId')
+            .equalTo(receiverId)
+            .once('value');
 
-        // Filter messages where the senderId matches the provided receiverId and receiverId matches the provided senderId
-        const filteredMessagesSecond = Object.values(userMessages).filter(message => 
-            (message.senderId === receiverId && message.receiverId === senderId)
-        );
+        const receiverMessages = receiverMessagesSnapshot.val() || {};
 
-        // Combine both sets of filtered messages
-        const combinedMessages = filteredMessages.concat(filteredMessagesSecond);
+        const combinedMessages = { ...userMessages, ...receiverMessages };
 
-        console.log(combinedMessages);
         res.status(200).json(combinedMessages);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
