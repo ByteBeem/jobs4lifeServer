@@ -205,9 +205,15 @@ router.get("/fetchMore/:page", async (req, res) => {
     // Convert postsData to an array of posts
     const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
 
-    // Extract only the posts for the current page
-    const startIndex = Math.max(postsArray.length - pageSize, 0);
-    const endIndex = postsArray.length;
+    // Calculate start and end indices for the current page
+    const startIndex = Math.max(postsArray.length - pageSize * (page + 1), 0);
+    const endIndex = Math.max(postsArray.length - pageSize * page, 0);
+
+    if (startIndex >= endIndex) {
+      // No more posts found for this page
+      return res.json([]);
+    }
+
     const currentPagePosts = postsArray.slice(startIndex, endIndex);
 
     res.json(currentPagePosts);
@@ -216,6 +222,7 @@ router.get("/fetchMore/:page", async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 router.get("/fetchMy", async (req, res) => {
