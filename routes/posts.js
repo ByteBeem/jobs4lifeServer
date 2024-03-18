@@ -86,12 +86,12 @@ router.post("/messages", async (req, res) => {
 
         // Filter messages where the senderId matches the provided senderId and receiverId matches the provided receiverId
         const filteredMessages = Object.values(userMessages).filter(message => 
-            (message.senderId === senderId && message.receiverId === receiverId)
+            (message.senderId === senderId && message.reciever === receiverId)
         );
 
         // Filter messages where the senderId matches the provided receiverId and receiverId matches the provided senderId
         const filteredMessagesSecond = Object.values(userMessages).filter(message => 
-            (message.senderId === receiverId && message.receiverId === senderId)
+            (message.senderId === receiverId && message.reciever === senderId)
         );
 
         // Combine both sets of filtered messages
