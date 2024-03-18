@@ -88,11 +88,13 @@ router.post("/messages", async (req, res) => {
         const userMessages = userMessagesSnapshot.val() || {};
 
         const receiverMessagesSnapshot = await db.ref('messages')
-            .orderByChild('receiverId')
+            .orderByChild('reciever')
             .equalTo(receiverId)
             .once('value');
 
         const receiverMessages = receiverMessagesSnapshot.val() || {};
+        console.log('receiverMessages',receiverMessages);
+        console.log('userMessages',userMessages);
 
         const combinedMessages = { ...userMessages, ...receiverMessages };
 
