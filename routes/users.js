@@ -59,9 +59,22 @@ router.use(async(req, res, next) => {
         const messages = messagesSnapshot.val();
         console.log('messages',messages);
 
-        // Extract senderIds from messages
-        const senderIds = Object.values(messages).map(message => message.senderId);
-        console.log('senderIds',senderIds);
+
+const messagesSnapshot = await db.ref('messages')
+    .orderByChild('reciever')
+    .equalTo(userId)
+    .once('value');
+
+// Extract senderIds from messages
+const senderIds = [];
+messagesSnapshot.forEach(message => {
+    const senderId = message.val().senderId;
+    if (!senderIds.includes(senderId)) {
+        senderIds.push(senderId);
+    }
+});
+console.log('senderIds', senderIds);
+
 
         // Call findUsers function with senderIds
         const usersSnapshots = await findUsers(senderIds);
