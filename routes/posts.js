@@ -76,7 +76,6 @@ router.post('/postJobs',  async (req, res) => {
 router.post("/messages", async (req, res) => {
     const receiverId = req.body.receiverId;
     const senderId = req.body.senderId;
-  
     
     try {
         const userMessagesSnapshot = await db.ref('messages')
@@ -84,14 +83,22 @@ router.post("/messages", async (req, res) => {
             .once('value');
 
         const userMessages = userMessagesSnapshot.val() || {};
-        
 
+        // Filter messages where the senderId matches the provided senderId and receiverId matches the provided receiverId
         const filteredMessages = Object.values(userMessages).filter(message => 
-            (message.senderId === senderId && message.receiverId === receiverId) ||
+            (message.senderId === senderId && message.receiverId === receiverId)
+        );
+
+        // Filter messages where the senderId matches the provided receiverId and receiverId matches the provided senderId
+        const filteredMessagesSecond = Object.values(userMessages).filter(message => 
             (message.senderId === receiverId && message.receiverId === senderId)
         );
-        console.log(filteredMessages);
-        res.status(200).json(filteredMessages);
+
+        // Combine both sets of filtered messages
+        const combinedMessages = filteredMessages.concat(filteredMessagesSecond);
+
+        console.log(combinedMessages);
+        res.status(200).json(combinedMessages);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
