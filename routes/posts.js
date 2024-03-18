@@ -73,6 +73,31 @@ router.post('/postJobs',  async (req, res) => {
     }
 });
 
+    const chatMessages = async (senderId, receiverId) => {
+    try {
+        // Retrieve messages from the database
+        const userMessagesSnapshot = await db.ref('messages')
+            .orderByChild('createdAt')
+            .once('value');
+
+        // Extract the message data from the snapshot
+        const userMessages = userMessagesSnapshot.val() || {};
+
+        // Filter messages where senderId is the receiverId and receiverId is the senderId
+        const filteredMessages = Object.values(userMessages).filter(message =>
+            (message.senderId === receiverId && message.receiverId === senderId)
+            ||
+             (message.senderId === senderId && message.receiverId === receiverId)
+        );
+
+        return filteredMessages;
+    } catch (error) {
+        console.error("Error fetching chat messages:", error);
+        return []; // Return an empty array if there's an error
+    }
+};
+
+
 router.post("/messages", async (req, res) => {
     const receiverId = req.body.receiverId;
     const senderId = req.body.senderId;
@@ -83,6 +108,8 @@ router.post("/messages", async (req, res) => {
             .once('value');
 
         const userMessages = userMessagesSnapshot.val() || {};
+        const waiting= await chatMessages(senderId,receiverId)
+        console.log(waiting);
 
         // Filter messages where the senderId matches the provided senderId and receiverId matches the provided receiverId
         const filteredMessages = Object.values(userMessages).filter(message => 
