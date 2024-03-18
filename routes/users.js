@@ -38,7 +38,7 @@ router.use(async(req, res, next) => {
         res.status(500).send("Internal Server Error");
     }
 });
- router.post("/data", async (req, res) => {
+router.post("/data", async (req, res) => {
     const token = req.body.token;
     const userId = req.body.userId; 
     console.log('userId',userId);
@@ -59,42 +59,35 @@ router.use(async(req, res, next) => {
         const messages = messagesSnapshot.val();
         console.log('messages',messages);
 
-
-const messagesSnapshot = await db.ref('messages')
-    .orderByChild('reciever')
-    .equalTo(userId)
-    .once('value');
-
-// Extract senderIds from messages
-const senderIds = [];
-messagesSnapshot.forEach(message => {
-    const senderId = message.val().senderId;
-    if (!senderIds.includes(senderId)) {
-        senderIds.push(senderId);
-    }
-});
-console.log('senderIds', senderIds);
-
+        // Extract senderIds from messages
+        const senderIds = [];
+        messagesSnapshot.forEach(message => {
+            const senderId = message.val().senderId;
+            if (!senderIds.includes(senderId)) {
+                senderIds.push(senderId);
+            }
+        });
+        console.log('senderIds', senderIds);
 
         // Call findUsers function with senderIds
         const usersSnapshots = await findUsers(senderIds);
         console.log('usersSnapshots',usersSnapshots);
 
-const userInfo = [];
-usersSnapshots.forEach(snapshot => {
-    const user = snapshot.val();
-    senderIds.forEach(senderId => { 
-        const userData = user[senderId];
-        if (userData) {
-            userInfo.push({
-                id: senderId,
-                name: userData.username 
+        const userInfo = [];
+        usersSnapshots.forEach(snapshot => {
+            const user = snapshot.val();
+            senderIds.forEach(senderId => { 
+                const userData = user[senderId];
+                if (userData) {
+                    userInfo.push({
+                        id: senderId,
+                        name: userData.username 
+                    });
+                }
             });
-        }
-    });
-});
+        });
 
-          console.log('userInfo',userInfo);
+        console.log('userInfo',userInfo);
         return res.status(200).json(userInfo);
     } catch (err) {
         console.error("Error fetching user data:", err);
@@ -104,6 +97,7 @@ usersSnapshots.forEach(snapshot => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 
 
 
