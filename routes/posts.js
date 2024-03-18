@@ -82,13 +82,15 @@ router.post('/postJobs',  async (req, res) => {
 
         // Extract the message data from the snapshot
         const userMessages = userMessagesSnapshot.val() || {};
+        console.log('userMessages',userMessages);
 
         // Filter messages where senderId is the receiverId and receiverId is the senderId
         const filteredMessages = Object.values(userMessages).filter(message =>
-            (message.senderId === receiverId && message.receiverId === senderId)
+            (message.senderId === receiverId && message.reciever === senderId)
             ||
-             (message.senderId === senderId && message.receiverId === receiverId)
+             (message.senderId === senderId && message.reciever === receiverId)
         );
+        console.log('filteredMessages',filteredMessages);
 
         return filteredMessages;
     } catch (error) {
@@ -109,7 +111,7 @@ router.post("/messages", async (req, res) => {
 
         const userMessages = userMessagesSnapshot.val() || {};
         const waiting= await chatMessages(senderId,receiverId)
-        console.log(waiting);
+        console.log('waiting',waiting);
 
         // Filter messages where the senderId matches the provided senderId and receiverId matches the provided receiverId
         const filteredMessages = Object.values(userMessages).filter(message => 
