@@ -85,23 +85,18 @@ router.post("/messages", async (req, res) => {
 
         const userMessages = userMessagesSnapshot.val() || {};
         
-        // Filter messages based on sender and receiver IDs
+
         const filteredMessages = Object.values(userMessages).filter(message => 
             (message.senderId === senderId && message.receiverId === receiverId) ||
             (message.senderId === receiverId && message.receiverId === senderId)
         );
-
+        console.log(filteredMessages);
         res.status(200).json(filteredMessages);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-
-
-
-
 
 
 router.post('/like/:postId', async (req, res) => {
