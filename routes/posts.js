@@ -137,6 +137,34 @@ router.post('/like/:postId', async (req, res) => {
     res.status(500).send('An error occurred while liking the post.');
   }
 });
+router.get('/search', async (req, res) => {
+    const searchTerm = req.query.search; 
+
+    try {
+       
+        const searchSnapshot = await db.ref('userposts').once('value');
+        const searchResults = [];
+
+        searchSnapshot.forEach(snapshot => {
+            const postData = snapshot.val();
+            
+            if (postData.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                postData.description.toLowerCase().includes(searchTerm.toLowerCase())) {
+                searchResults.push({ id: snapshot.key, ...postData });
+            }
+        });
+
+        if (searchResults.length === 0) {
+            return res.status(404).json({ message: 'No results found' });
+        }
+
+        res.status(200).json(searchResults);
+    } catch (error) {
+        console.error('Error searching:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 router.get("/fetch", async (req, res) => {
     try {
