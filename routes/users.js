@@ -39,9 +39,10 @@ router.use(async(req, res, next) => {
     }
 });
 router.post("/data", async (req, res) => {
+router.post("/data", async (req, res) => {
     const token = req.body.token;
     const userId = req.body.userId; 
-    console.log('userId',userId);
+    console.log('userId', userId);
 
     if (!token) {
         return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -57,7 +58,7 @@ router.post("/data", async (req, res) => {
         // Query messages table to find messages where receiver is userId
         const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
-        console.log('messages',messages);
+        console.log('messages', messages);
 
         // Extract senderIds from messages
         const senderIds = [];
@@ -71,14 +72,14 @@ router.post("/data", async (req, res) => {
 
         // Call findUsers function with senderIds
         const usersSnapshots = await findUsers(senderIds);
-        console.log('usersSnapshots',usersSnapshots);
+        console.log('usersSnapshots', usersSnapshots);
 
         const userInfo = [];
         usersSnapshots.forEach(snapshot => {
             const user = snapshot.val();
-            senderIds.forEach(senderId => { 
+            senderIds.forEach(senderId => {
                 const userData = user[senderId];
-                if (userData) {
+                if (userData && senderId !== userId) { 
                     userInfo.push({
                         id: senderId,
                         name: userData.username 
@@ -87,7 +88,7 @@ router.post("/data", async (req, res) => {
             });
         });
 
-        console.log('userInfo',userInfo);
+        console.log('userInfo', userInfo);
         return res.status(200).json(userInfo);
     } catch (err) {
         console.error("Error fetching user data:", err);
@@ -97,6 +98,7 @@ router.post("/data", async (req, res) => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 
 
 
