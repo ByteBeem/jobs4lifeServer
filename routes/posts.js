@@ -137,30 +137,24 @@ router.post('/like/:postId', async (req, res) => {
     res.status(500).send('An error occurred while liking the post.');
   }
 });
-router.get('/search', async (req, res) => {
-    const searchTerm = req.query.search; 
+router.get('/search/:searchThis', async (req, res) => {
+    const searchTerm = req.params.searchThis.toLowerCase(); 
 
     try {
-      
         const searchSnapshot = await db.ref('userposts').once('value');
         const searchResults = [];
 
         searchSnapshot.forEach(snapshot => {
             const postData = snapshot.val();
-
-            
-            if (postData && typeof postData === 'object' && 'title' in postData && 'post' in postData) {
-                // Check if title or description contains the search term (case-insensitive)
-                if (postData.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    postData.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-                    searchResults.push({ id: snapshot.key, ...postData });
+            // Check if postData contains the searchTerm in any of its fields
+            if (postData && typeof postData === 'object') {
+                if (postData.post.toLowerCase().includes(searchTerm) ||
+                    postData.title.toLowerCase().includes(searchTerm) ||
+                    (postData.description && postData.description.toLowerCase().includes(searchTerm))) {
+                    searchResults.push(postData);
                 }
             }
         });
-
-        if (searchResults.length === 0) {
-            return res.status(404).json({ message: 'No results found' });
-        }
 
         res.status(200).json(searchResults);
     } catch (error) {
