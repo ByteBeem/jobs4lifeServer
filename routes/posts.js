@@ -74,36 +74,36 @@ router.post('/postJobs',  async (req, res) => {
 });
 
    
-
 router.post("/messages", async (req, res) => {
     const receiverId = req.body.receiverId;
     const senderId = req.body.senderId;
-    
+
     try {
-        const userMessagesSnapshot = await db.ref('messages')
-            .orderByChild('senderId')
-            .equalTo(senderId)
+        const messagesSnapshot = await db.ref('messages')
+            .orderByChild('createdAt') 
             .once('value');
 
-        const userMessages = userMessagesSnapshot.val() || {};
+        const allMessages = messagesSnapshot.val() || {};
+        const conversations = {};
 
-        const receiverMessagesSnapshot = await db.ref('messages')
-            .orderByChild('reciever')
-            .equalTo(receiverId)
-            .once('value');
+        // Filter messages where senderId is the sender or receiver
+        Object.keys(allMessages).forEach(key => {
+            const message = allMessages[key];
+            if ((message.senderId === senderId && message.reciever === receiverId) ||
+                (message.senderId === receiverId && message.reciever === senderId)) {
+                conversations[key] = message;
+            }
+        });
 
-        const receiverMessages = receiverMessagesSnapshot.val() || {};
-        console.log('receiverMessages',receiverMessages);
-        console.log('userMessages',userMessages);
+        console.log('conversations',conversations);
 
-        const combinedMessages = { ...userMessages, ...receiverMessages };
-
-        res.status(200).json(combinedMessages);
+        res.status(200).json(conversations);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
