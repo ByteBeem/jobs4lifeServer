@@ -74,22 +74,22 @@ router.post('/postJobs',  async (req, res) => {
 });
 
 router.post("/messages", async (req, res) => {
-    const receiverId = req.body.recieverId;
+    const receiverId = req.body.receiverId;
     const senderId = req.body.senderId;
-    console.log('receiverId',receiverId);
-    console.log('senderId',senderId);
+  
     
     try {
         const userMessagesSnapshot = await db.ref('messages')
-            .orderByChild('senderId')
-            .equalTo(senderId)
+            .orderByChild('createdAt')
             .once('value');
-        
+
         const userMessages = userMessagesSnapshot.val() || {};
-        console.log('userMessages',userMessages);
         
-        // Filter messages by receiverId
-        const filteredMessages = Object.values(userMessages).filter(message => message.reciever === receiverId);
+        // Filter messages based on sender and receiver IDs
+        const filteredMessages = Object.values(userMessages).filter(message => 
+            (message.senderId === senderId && message.receiverId === receiverId) ||
+            (message.senderId === receiverId && message.receiverId === senderId)
+        );
 
         res.status(200).json(filteredMessages);
     } catch (error) {
@@ -97,6 +97,10 @@ router.post("/messages", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+
+
+
 
 
 
