@@ -79,26 +79,23 @@ router.post("/messages", async (req, res) => {
     const senderId = req.body.senderId;
 
     try {
-        const messagesSnapshot = await db.ref('messages')
-            .orderByChild('createdAt') 
-            .once('value');
-
-        const allMessages = messagesSnapshot.val() || {};
-        const conversations = {};
-
-        console.log('allMessages', allMessages);
         
-        Object.keys(allMessages).forEach(key => {
-            const message = allMessages[key];
-            if ((message.senderId === senderId && message.reciever === receiverId) ||
-                (message.senderId === receiverId && message.reciever === senderId)) {
-                conversations[key] = message;
-            }
-        });
 
-        console.log('conversations', conversations);
+        const messagesSnapshot = await  await db.ref('messages')
+      .orderByChild('senderId').equalTo(senderId)
+      .once('value');
 
-        res.status(200).json(conversations);
+        console.log('messagesSnapshot',messagesSnapshot);
+
+const conversations = [];
+    messagesSnapshot.forEach((childSnapshot) => {
+      const message = childSnapshot.val();
+      if (message.reciever === receiverId || message.senderId === receiverId) {
+        conversations.push(message);
+      }
+    });
+ console.log('conversations',conversations);
+    res.status(200).json(conversations);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
