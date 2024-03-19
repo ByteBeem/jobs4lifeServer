@@ -76,7 +76,7 @@ router.post('/postJobs',  async (req, res) => {
    
 router.post("/messages", async (req, res) => {
     try {
-        const recipientId = req.body.receiverId;
+        const recipientId = req.body.recieverId;
         const senderId = req.body.senderId;
 
         const chatId = [senderId, recipientId].sort().join('_');
