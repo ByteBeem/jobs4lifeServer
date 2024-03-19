@@ -75,57 +75,23 @@ router.post('/postJobs',  async (req, res) => {
 
    
 router.post("/messages", async (req, res) => {
-    const receiverId = req.body.receiverId;
-    const senderId = req.body.senderId;
-
     try {
-        const messagesSnapshot = await db.ref('messages')
-            .orderByChild('senderId').equalTo(senderId)
+        const recipientId = req.body.receiverId;
+        const senderId = req.body.senderId;
+
+        const chatId = [senderId, recipientId].sort().join('_');
+        const messagesSnapshot = await db.ref(`messages/${chatId}`)
+            .orderByChild('createdAt')
             .once('value');
 
-        console.log('MeSenderidmessagesSnapshot', messagesSnapshot.val());
-
-          const AllmessagesSnapshot = await db.ref('messages')
-            .orderByChild('createdAt') 
-            .once('value');
-
-        const allMessages = AllmessagesSnapshot.val() || {};
-
-        Object.keys(allMessages).forEach(key => {
-            const message = allMessages[key];
-            console.log('message',message);
-            if ((message.senderId === senderId && message.reciever === receiverId) 
-                ) {
-               console.log('message',message);
-            }
-        });
-
-                Object.keys(allMessages).forEach(key => {
-            const message = allMessages[key];
-            console.log('message',message);
-            if ((message.senderId === receiverId && message.reciever === senderId  ) 
-                ) {
-               console.log('Secondmessage',message);
-            }
-        });
-
-        console.log('messagesSnapshot', messagesSnapshot.val());
-
-        const conversations = [];
-        messagesSnapshot.forEach((childSnapshot) => {
-            const message = childSnapshot.val();
-            if (message.receiverId === receiverId || message.senderId === receiverId) {
-                conversations.push(message);
-            }
-        });
-
-        console.log('conversations', conversations);
-        res.status(200).json(conversations);
+        const allMessages = messagesSnapshot.val() || {};
+        res.status(200).json(allMessages);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
