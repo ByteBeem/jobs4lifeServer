@@ -85,6 +85,7 @@ router.post("/messages", async (req, res) => {
             .once('value');
 
         const allMessages = messagesSnapshot.val() || {};
+        console.log('allMessages',allMessages);
         res.status(200).json(allMessages);
     } catch (error) {
         console.error("Error fetching user messages:", error);
