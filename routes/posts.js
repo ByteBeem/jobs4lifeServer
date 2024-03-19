@@ -80,11 +80,18 @@ router.post("/messages", async (req, res) => {
         const senderId = req.body.senderId;
 
         const chatId = [senderId, recipientId].sort().join('_');
-        const messagesSnapshot = await db.ref(`messages/${chatId}`)
-            .orderByChild('createdAt')
-            .once('value');
+        const messagesSnapshot = await db.ref(`messages/${chatId}`).once('value');
 
-        const allMessages = messagesSnapshot.val() || {};
+        const allMessages = [];
+        messagesSnapshot.forEach((childSnapshot) => {
+            const message = childSnapshot.val();
+            allMessages.push({
+                createdAt: message.createdAt,
+                message: message.message,
+                receiver: message.recipientId,
+                senderId: message.senderId
+            });
+        });
         console.log('allMessages',allMessages);
         res.status(200).json(allMessages);
     } catch (error) {
@@ -92,6 +99,7 @@ router.post("/messages", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 
