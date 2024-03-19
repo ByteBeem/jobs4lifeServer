@@ -83,6 +83,32 @@ router.post("/messages", async (req, res) => {
             .orderByChild('senderId').equalTo(senderId)
             .once('value');
 
+        console.log('MeSenderidmessagesSnapshot', messagesSnapshot.val());
+
+          const AllmessagesSnapshot = await db.ref('messages')
+            .orderByChild('createdAt') 
+            .once('value');
+
+        const allMessages = AllmessagesSnapshot.val() || {};
+
+        Object.keys(allMessages).forEach(key => {
+            const message = allMessages[key];
+            console.log('message',message);
+            if ((message.senderId === senderId && message.reciever === receiverId) 
+                ) {
+               console.log('message',message);
+            }
+        });
+
+                Object.keys(allMessages).forEach(key => {
+            const message = allMessages[key];
+            console.log('message',message);
+            if ((message.senderId === receiverId && message.reciever === senderId  ) 
+                ) {
+               console.log('Secondmessage',message);
+            }
+        });
+
         console.log('messagesSnapshot', messagesSnapshot.val());
 
         const conversations = [];
