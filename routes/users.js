@@ -52,7 +52,7 @@ router.post("/data", async (req, res) => {
         }
 
         // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
+        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
         console.log('messages', messages);
 
@@ -66,16 +66,24 @@ router.post("/data", async (req, res) => {
         });
         console.log('senderIds', senderIds);
 
-        // Call findUsers function with senderIds
-        const usersSnapshots = await findUsers(senderIds);
+        // Query messages table again to find messages sent by userId
+        const userMessagesSnapshot = await db.ref('messages').orderByChild('senderId').equalTo(userId).once('value');
+        const userMessages = userMessagesSnapshot.val();
+
+        // Filter out senderIds who have texted only userId
+        const uniqueSenderIds = senderIds.filter(senderId => !Object.values(userMessages).some(message => message.receiver === senderId));
+        console.log('uniqueSenderIds', uniqueSenderIds);
+
+        // Call findUsers function with uniqueSenderIds
+        const usersSnapshots = await findUsers(uniqueSenderIds);
         console.log('usersSnapshots', usersSnapshots);
 
         const userInfo = [];
         usersSnapshots.forEach(snapshot => {
             const user = snapshot.val();
-            senderIds.forEach(senderId => {
+            uniqueSenderIds.forEach(senderId => {
                 const userData = user[senderId];
-                if (userData && senderId !== userId) {
+                if (userData) {
                     userInfo.push({
                         id: senderId,
                         name: userData.username
@@ -94,6 +102,7 @@ router.post("/data", async (req, res) => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 
 async function findUsers(userIds) {
     try {
