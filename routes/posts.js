@@ -86,7 +86,8 @@ router.post("/messages", async (req, res) => {
         const allMessages = messagesSnapshot.val() || {};
         const conversations = {};
 
-        // Filter messages where senderId is the sender or receiver
+        console.log('allMessages', allMessages);
+        
         Object.keys(allMessages).forEach(key => {
             const message = allMessages[key];
             if ((message.senderId === senderId && message.reciever === receiverId) ||
@@ -95,7 +96,7 @@ router.post("/messages", async (req, res) => {
             }
         });
 
-        console.log('conversations',conversations);
+        console.log('conversations', conversations);
 
         res.status(200).json(conversations);
     } catch (error) {
@@ -103,9 +104,6 @@ router.post("/messages", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-
-
 
 
 router.post('/like/:postId', async (req, res) => {
