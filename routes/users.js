@@ -52,7 +52,7 @@ router.post("/data", async (req, res) => {
         }
 
         // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
+        const messagesSnapshot = await db.ref('messages').orderByChild('receiver').equalTo(userId).once('value');
         const messages = messagesSnapshot.val();
         console.log('messages', messages);
 
@@ -83,7 +83,7 @@ router.post("/data", async (req, res) => {
             const user = snapshot.val();
             uniqueSenderIds.forEach(senderId => {
                 const userData = user[senderId];
-                if (userData) {
+                if (userData && senderId !== userId) {
                     userInfo.push({
                         id: senderId,
                         name: userData.username
@@ -102,6 +102,7 @@ router.post("/data", async (req, res) => {
         return res.status(500).json({ error: "Internal server error. Please try again later." });
     }
 });
+
 
 
 async function findUsers(userIds) {
