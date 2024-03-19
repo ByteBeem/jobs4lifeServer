@@ -79,28 +79,28 @@ router.post("/messages", async (req, res) => {
     const senderId = req.body.senderId;
 
     try {
-        
+        const messagesSnapshot = await db.ref('messages')
+            .orderByChild('senderId').equalTo(senderId)
+            .once('value');
 
-        const messagesSnapshot = await  await db.ref('messages')
-      .orderByChild('senderId').equalTo(senderId)
-      .once('value');
+        console.log('messagesSnapshot', messagesSnapshot.val());
 
-        console.log('messagesSnapshot',messagesSnapshot);
+        const conversations = [];
+        messagesSnapshot.forEach((childSnapshot) => {
+            const message = childSnapshot.val();
+            if (message.receiverId === receiverId || message.senderId === receiverId) {
+                conversations.push(message);
+            }
+        });
 
-const conversations = [];
-    messagesSnapshot.forEach((childSnapshot) => {
-      const message = childSnapshot.val();
-      if (message.reciever === receiverId || message.senderId === receiverId) {
-        conversations.push(message);
-      }
-    });
- console.log('conversations',conversations);
-    res.status(200).json(conversations);
+        console.log('conversations', conversations);
+        res.status(200).json(conversations);
     } catch (error) {
         console.error("Error fetching user messages:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 router.post('/like/:postId', async (req, res) => {
