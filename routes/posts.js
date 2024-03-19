@@ -80,8 +80,9 @@ router.post("/messages", async (req, res) => {
         const senderId = req.body.senderId;
 
         const chatId = [senderId, recipientId].sort().join('_');
+        console.log('chatId',chatId);
         const messagesSnapshot = await db.ref(`messages/${chatId}`).once('value');
-
+        console.log('messagesSnapshot',messagesSnapshot.val());
         const allMessages = [];
         messagesSnapshot.forEach((childSnapshot) => {
             const message = childSnapshot.val();
