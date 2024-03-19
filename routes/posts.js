@@ -172,16 +172,18 @@ router.get("/fetch", async (req, res) => {
         }
 
         const postsArray = Object.keys(postsData).map(key => ({ id: key, ...postsData[key] }));
-        console.log(postsArray);
+      
 
-       
+        // Fetch the first 10 posts
+        const firstTenPosts = postsArray.slice(0, 10);
 
-        res.json(postsArray);
+        res.json(firstTenPosts);
     } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 router.get("/fetchMore/:page", async (req, res) => {
   const page = parseInt(req.params.page); 
