@@ -39,14 +39,14 @@ const fetchChatContactsForUser = async (userId) => {
   try {
     const snapshot = await db.ref('messages').orderByKey().once('value');
     const chatContacts = new Set(); 
-    console.log('snapshot', snapshot);
+  
     
     snapshot.forEach((chatSnapshot) => {
-      const key = chatSnapshot.key; // Define key here
+      const key = chatSnapshot.key; 
       const [senderId, recipientId] = key.split('_');
       console.log('senderId , recipientId', senderId , recipientId);
       
-      // Check if the specified user is either the sender or the recipient
+     
       if (senderId === userId) {
         chatContacts.add(recipientId);
       } else if (recipientId === userId) {
@@ -55,14 +55,14 @@ const fetchChatContactsForUser = async (userId) => {
     });
     console.log('chatContacts', chatContacts);
 
-    // Convert Set to Array to prepare for querying the users table
+   
     const uniqueUserIds = Array.from(chatContacts);
     console.log('uniqueUserIds', uniqueUserIds);
     
-    // Query the users table to get IDs and usernames of the chat contacts
+    
     const chatContactsDetails = await Promise.all(
       uniqueUserIds.map(async (contactId) => {
-        const userSnapshot = await db.ref('users').orderByKey().equalTo(contactId).once('value');
+        const userSnapshot = await db.ref('users').child(contactId).once('value');
         const userData = userSnapshot.val();
         const username = userData ? userData.username : null;
         return { id: contactId, username: username };
@@ -75,6 +75,7 @@ const fetchChatContactsForUser = async (userId) => {
     return [];
   }
 };
+
 
 
 router.post("/data", async (req, res) => {
