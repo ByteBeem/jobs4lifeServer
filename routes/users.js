@@ -42,7 +42,7 @@ const fetchChatContactsForUser = async (userId) => {
       console.log('snapshot',snapshot);
     
     snapshot.forEach((chatSnapshot) => {
-      const [senderId, recipientId] = chatSnapshot.key.split('_').map(id => parseInt(id));
+      const [senderId, recipientId] = key.split('_');
         console.log('senderId , recipientId',senderId , recipientId);
       
       // Check if the specified user is either the sender or the recipient
