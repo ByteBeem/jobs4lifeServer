@@ -35,10 +35,45 @@ router.use(async (req, res, next) => {
     }
 });
 
+const fetchChatContactsForUser = async (userId) => {
+  try {
+    const snapshot = await db.ref('messages').orderByKey().once('value');
+    const chatContacts = new Set(); 
+    
+    snapshot.forEach((chatSnapshot) => {
+      const [senderId, recipientId] = chatSnapshot.key.split('_').map(id => parseInt(id));
+      
+      // Check if the specified user is either the sender or the recipient
+      if (senderId === userId) {
+        chatContacts.add(recipientId);
+      } else if (recipientId === userId) {
+        chatContacts.add(senderId);
+      }
+    });
+
+    // Convert Set to Array to prepare for querying the users table
+    const uniqueUserIds = Array.from(chatContacts);
+    
+    // Query the users table to get IDs and usernames of the chat contacts
+    const chatContactsDetails = await Promise.all(
+      uniqueUserIds.map(async (contactId) => {
+        const userSnapshot = await db.ref('users').orderByKey().equalTo(contactId).once('value');
+        const userData = userSnapshot.val();
+        const username = userData ? userData.username : null;
+        return { id: contactId, username: username };
+      })
+    );
+
+    return chatContactsDetails.filter(contact => contact.username); 
+  } catch (error) {
+    console.error('Error fetching chat contacts for user:', error);
+    return [];
+  }
+};
+
 router.post("/data", async (req, res) => {
     const token = req.body.token;
     const userId = req.body.userId;
-    console.log('userId', userId);
 
     if (!token) {
         return res.status(401).json({ error: "Unauthorized. Token not provided." });
@@ -51,49 +86,12 @@ router.post("/data", async (req, res) => {
             return res.status(400).json({ error: "Malformed token. Missing required fields." });
         }
 
-        // Query messages table to find messages where receiver is userId
-        const messagesSnapshot = await db.ref('messages').orderByChild('reciever').equalTo(userId).once('value');
-        const messages = messagesSnapshot.val();
-        console.log('messages', messages);
+        // Fetch chat contacts for the user
+        const chatContacts = await fetchChatContactsForUser(userId);
+        console.log('chatContacts',chatContacts);
 
-        // Extract senderIds from messages
-        const senderIds = [];
-        messagesSnapshot.forEach(message => {
-            const senderId = message.val().senderId;
-            if (!senderIds.includes(senderId)) {
-                senderIds.push(senderId);
-            }
-        });
-        console.log('senderIds', senderIds);
-
-        // Query messages table again to find messages sent by userId
-        const userMessagesSnapshot = await db.ref('messages').orderByChild('senderId').equalTo(userId).once('value');
-        const userMessages = userMessagesSnapshot.val();
-
-        // Filter out senderIds who have texted only userId
-        const uniqueSenderIds = senderIds.filter(senderId => !Object.values(userMessages).some(message => message.receiver === senderId));
-        console.log('uniqueSenderIds', uniqueSenderIds);
-
-        // Call findUsers function with uniqueSenderIds
-        const usersSnapshots = await findUsers(uniqueSenderIds);
-        console.log('usersSnapshots', usersSnapshots);
-
-        const userInfo = [];
-        usersSnapshots.forEach(snapshot => {
-            const user = snapshot.val();
-            uniqueSenderIds.forEach(senderId => {
-                const userData = user[senderId];
-                if (userData && senderId !== userId) {
-                    userInfo.push({
-                        id: senderId,
-                        name: userData.username
-                    });
-                }
-            });
-        });
-
-        console.log('userInfo', userInfo);
-        return res.status(200).json(userInfo);
+        // Return the chat contacts data
+        return res.status(200).json(chatContacts);
     } catch (err) {
         console.error("Error fetching user data:", err);
         if (err instanceof jwt.JsonWebTokenError) {
@@ -104,23 +102,6 @@ router.post("/data", async (req, res) => {
 });
 
 
-
-async function findUsers(userIds) {
-    try {
-        const usersPromises = userIds.map(userId =>
-            db.ref('users').orderByKey().equalTo(userId).once('value')
-        );
-
-        const usersSnapshots = await Promise.all(usersPromises);
-
-        return usersSnapshots;
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        throw error;
-    }
-}
-
-// POST /users/:id/update
 router.post("/:id/update", async (req, res) => {
     // Update user data logic
 });
