@@ -68,11 +68,11 @@ router.get('/jobs', async (req, res) => {
 });
 
 router.post('/postJobs',  async (req, res) => {
-    const { title, description, requirements, address, salary, jobLink } = req.body;
+    const { title, description, requirements, address, salary, jobLink , province , imageLink } = req.body;
 
     try {
         // Validate job details
-        if (!title || !description || !requirements || !address || !salary || !jobLink) {
+        if (!title || !description || !requirements || !address || !salary || !jobLink || !province || !imageLink) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -83,11 +83,13 @@ router.post('/postJobs',  async (req, res) => {
             requirements: requirements,
             address: address,
             salary: salary,
-            jobLink: jobLink
+            jobLink: jobLink,
+            province:province,
+            imageLink:imageLink
         };
 
         // Store job post data in Firebase
-        const jobRef = db.ref('jobPosts').push();
+        const jobRef = db.ref('jobs').push();
         await jobRef.set(jobPost);
 
         res.status(201).json({ message: "Job post added successfully." });
