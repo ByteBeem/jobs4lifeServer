@@ -49,8 +49,16 @@ router.get('/jobs', async (req, res) => {
     const itemsPerPage = 10;
     const offset = (page - 1) * itemsPerPage;
 
-    const snapshot = await db.ref('jobs').orderByChild('province').equalTo(province).limitToFirst(itemsPerPage).startAt(offset).once('value');
-    const jobs = snapshot.val();
+    // Modify the query to avoid the use of startAt()
+    const snapshot = await db.ref('jobs').orderByChild('province').equalTo(province).limitToFirst(itemsPerPage).once('value');
+    let jobs = snapshot.val();
+
+    // If jobs exist and it's an object, convert it to an array
+    if (jobs && typeof jobs === 'object') {
+      jobs = Object.values(jobs);
+    } else {
+      jobs = [];
+    }
 
     res.json({ jobs });
   } catch (error) {
@@ -58,6 +66,7 @@ router.get('/jobs', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 router.post('/postJobs',  async (req, res) => {
     const { title, description, requirements, address, salary, jobLink } = req.body;
 
