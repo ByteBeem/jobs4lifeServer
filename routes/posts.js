@@ -43,6 +43,21 @@ router.use(async(req, res, next) => {
         res.status(500).send("Internal Server Error");
     }
 });
+router.get('/jobs', async (req, res) => {
+  try {
+    const { page, province } = req.query;
+    const itemsPerPage = 10;
+    const offset = (page - 1) * itemsPerPage;
+
+    const snapshot = await db.ref('jobs').orderByChild('province').equalTo(province).limitToFirst(itemsPerPage).startAt(offset).once('value');
+    const jobs = snapshot.val();
+
+    res.json({ jobs });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 router.post('/postJobs',  async (req, res) => {
     const { title, description, requirements, address, salary, jobLink } = req.body;
 
