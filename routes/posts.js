@@ -50,7 +50,7 @@ router.get('/jobs', async (req, res) => {
     const offset = (page - 1) * itemsPerPage;
 
     // Modify the query to avoid the use of startAt()
-    const snapshot = await db.ref('jobs').orderByChild('province').equalTo(province).limitToFirst(itemsPerPage).once('value');
+    const snapshot = await db.ref('jobPosts').orderByChild('province').equalTo(province).limitToFirst(itemsPerPage).once('value');
     let jobs = snapshot.val();
 
     // If jobs exist and it's an object, convert it to an array
