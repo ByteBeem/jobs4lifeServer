@@ -27,12 +27,38 @@ app.use(helmet());
 app.use(hpp());
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }));
 app.set('trust proxy', 'loopback');
-app.use(cors());
 app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 
 app.use(mongoSanitize());
 app.use(xss());
+
+const corsOptions = {
+  origin: ['https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/'],
+  credentials: true,
+  exposedHeaders: ['Content-Length', 'X-Content-Type-Options', 'X-Frame-Options'],
+};
+
+app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/'];
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  res.header('Access-Control-Allow-Credentials', true);
+
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Access-Control-Allow-Origin', 'Content-Type, Authorization');
+    return res.status(200).json({});
+  }
+
+  next();
+});
 
 const limiter = rateLimit({
   max: 100,
