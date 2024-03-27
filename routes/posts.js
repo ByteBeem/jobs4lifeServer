@@ -67,37 +67,84 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
-router.post('/postJobs',  async (req, res) => {
-    const { title, description, requirements, address, salary, jobLink , province , imageLink } = req.body;
+const bucket = firebase.storage().bucket();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-    try {
-        // Validate job details
-        if (!title || !description || !requirements || !address || !salary || !jobLink || !province || !imageLink) {
-            return res.status(400).json({ error: "Missing required fields" });
-        }
+router.use(express.json());
 
-        // Create job post object
-        const jobPost = {
-            title: title,
-            description: description,
-            requirements: requirements,
-            address: address,
-            salary: salary,
-            jobLink: jobLink,
-            province:province,
-            imageLink:imageLink
-        };
+router.post('/postJobs', upload.single('image'), async (req, res) => {
+  const { title, description, requirements, address, salary, jobLink, province } = req.body;
 
-        // Store job post data in Firebase
-        const jobRef = db.ref('jobs').push();
-        await jobRef.set(jobPost);
-
-        res.status(201).json({ message: "Job post added successfully." });
-    } catch (err) {
-        console.error("Error adding job post:", err);
-        return res.status(500).json({ error: "Internal server error. Please try again later." });
+  try {
+    // Validate job details
+    if (!title || !description || !requirements || !address || !salary || !jobLink || !province) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
+
+    let imageLink = '';
+    if (req.file) {
+      // If image was uploaded, get the download URL from Firebase Storage
+      const imageUrl = await uploadImage(req.file);
+      imageLink = imageUrl;
+    }
+
+    // Create job post object
+    const jobPost = {
+      title: title,
+      description: description,
+      requirements: requirements,
+      address: address,
+      salary: salary,
+      jobLink: jobLink,
+      province: province,
+      imageLink: imageLink
+    };
+
+    // Store job post data in Firebase
+    const jobRef = db.ref('jobs').push();
+    await jobRef.set(jobPost);
+
+    res.status(201).json({ message: "Job post added successfully." });
+  } catch (err) {
+    console.error("Error adding job post:", err);
+    return res.status(500).json({ error: "Internal server error. Please try again later." });
+  }
 });
+
+// Function to upload image to Firebase Storage and return the download URL
+async function uploadImage(image) {
+  const filename = `${Date.now()}-${image.originalname}`;
+
+  // Create a reference to the Firebase Storage bucket
+  const file = bucket.file(filename);
+
+  // Create a write stream to upload the image
+  const stream = file.createWriteStream({
+    metadata: {
+      contentType: image.mimetype,
+    },
+  });
+
+  await new Promise((resolve, reject) => {
+    stream.on('error', (err) => {
+      console.error('Error uploading file:', err);
+      reject(err);
+    });
+
+    stream.on('finish', async () => {
+      // Make the image publicly accessible and get its download URL
+      await file.makePublic();
+      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+      resolve(downloadURL);
+    });
+
+    // Write the image data to the Firebase Storage bucket
+    stream.end(image.buffer);
+  });
+
+  return downloadURL;
+}
 
    
 router.post("/messages", async (req, res) => {
