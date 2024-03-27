@@ -17,6 +17,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
+
 router.use(async(req, res, next) => {
     const appCheckToken = req.header("CustomAppCheck");
 
@@ -67,9 +68,7 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
-const bucket = firebase.storage().bucket();
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+
 
 router.use(express.json());
 
