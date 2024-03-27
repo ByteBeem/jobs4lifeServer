@@ -23,21 +23,19 @@ firebase.initializeApp({
   storageBucket: 'jobs4life-d6926.appspot.com', 
 });
 
-
 app.use(helmet());
 app.use(hpp());
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }));
 app.set('trust proxy', 'loopback');
-app.use(cors());
+app.use(cors({
+  origin: 'https://jobs4life-post-jobs.vercel.app/'
+}));
 app.options('*', cors());
 app.use(compression());
 app.use(express.json({ limit: '10kb' }));
 
-
 app.use(mongoSanitize());
-
 app.use(xss());
-
 
 const limiter = rateLimit({
   max: 100,
@@ -56,7 +54,6 @@ app.use('/auth', authRouter);
 app.use('/users', userRouter);
 app.use('/posts', postRouter);
 
-
 if (cluster.isMaster) {
   const numCPUs = require("os").cpus().length;
   for (let i = 0; i < numCPUs; i++) {
@@ -65,7 +62,6 @@ if (cluster.isMaster) {
 
   cluster.on("exit", (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died`);
-   
     cluster.fork();
   });
 } else {
