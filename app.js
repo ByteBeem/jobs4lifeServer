@@ -34,7 +34,7 @@ app.use(mongoSanitize());
 app.use(xss());
 
 const corsOptions = {
-  origin: ['https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/'],
+  origin: ['https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app', 'https://jobs4life-post-jobs.vercel.app'],
   credentials: true,
   exposedHeaders: ['Content-Length', 'X-Content-Type-Options', 'X-Frame-Options'],
 };
@@ -42,8 +42,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-  const allowedOrigins = ['https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/', 'https://jobs4life-post-jobs.vercel.app/'];
+  const allowedOrigins = ['https://jobs4life-post-jobs.vercel.app', 'https://jobs4life-post-jobs.vercel.app', 'https://jobs4life-post-jobs.vercel.app', 'https://jobs4life-post-jobs.vercel.app/'];
   const origin = req.headers.origin;
+  console.log('origin',origin);
 
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
